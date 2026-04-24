@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Contábil — Conciliação com IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    /* ── Reset & Base ─────────────────────────────── */
+    :root {
+      --bg:#FAFAF7;--bg-elev:#FFFFFF;--bg-sunken:#F4F3EE;
+      --ink:#18181B;--ink-2:#3F3F46;--ink-3:#71717A;--ink-4:#A1A1AA;
+      --line:#E7E5E0;--line-2:#EDEBE5;
+      --ok-50:oklch(0.96 0.04 155);--ok-100:oklch(0.92 0.08 155);
+      --ok-500:oklch(0.58 0.14 155);--ok-700:oklch(0.42 0.12 155);
+      --warn-50:oklch(0.96 0.05 70);--warn-100:oklch(0.92 0.11 70);
+      --warn-500:oklch(0.68 0.16 70);--warn-700:oklch(0.48 0.14 60);
+      --risk-50:oklch(0.96 0.03 25);--risk-100:oklch(0.92 0.08 25);
+      --risk-500:oklch(0.58 0.17 25);--risk-700:oklch(0.45 0.16 25);
+      --info-50:oklch(0.96 0.03 240);--info-100:oklch(0.92 0.06 240);
+      --info-500:oklch(0.55 0.14 240);--info-700:oklch(0.42 0.14 240);
+      --violet-100:oklch(0.92 0.06 295);--violet-500:oklch(0.55 0.16 295);
+      --radius-sm:8px;--radius:12px;--radius-lg:16px;--radius-xl:20px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{width:100%;height:100%;font-family:'Inter',-apple-system,sans-serif;
+      font-feature-settings:'ss01','cv11','tnum';-webkit-font-smoothing:antialiased;
+      color:var(--ink);background:#1a1a1e;overflow:hidden;}
+    #root{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+
+    /* ── Phone shell ─────────────────────────────── */
+    .phone-shell{
+      width:390px;height:844px;background:var(--bg);
+      border-radius:50px;overflow:hidden;position:relative;
+      box-shadow:0 0 0 8px #2a2a2e,0 0 0 10px #111,0 40px 80px rgba(0,0,0,0.7);
+    }
+    @media(max-width:420px){
+      .phone-shell{width:100vw;height:100dvh;border-radius:0;box-shadow:none;}
+      #root{background:var(--bg);}
+    }
+
+    /* ── App layout ───────────────────────────────── */
+    .app{width:100%;height:100%;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;font-size:14px;letter-spacing:-0.01em;}
+    .scroll{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
+    .scroll::-webkit-scrollbar{display:none;}
+
+    /* ── Typography ───────────────────────────────── */
+    .h1{font-size:28px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;}
+    .h2{font-size:22px;font-weight:600;letter-spacing:-0.025em;line-height:1.15;}
+    .h3{font-size:17px;font-weight:600;letter-spacing:-0.02em;line-height:1.2;}
+    .label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);}
+    .mono{font-family:'JetBrains Mono','SF Mono',monospace;font-variant-numeric:tabular-nums;}
+    .num{font-variant-numeric:tabular-nums;}
+
+    /* ── TopBar ───────────────────────────────────── */
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 8px;background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0;}
+    .topbar .title{font-size:17px;font-weight:600;letter-spacing:-0.02em;}
+    .icon-btn{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--ink-2);cursor:pointer;}
+    .icon-btn:hover{background:var(--bg-sunken);}
+
+    /* ── TabBar ───────────────────────────────────── */
+    .tabbar{display:flex;justify-content:space-around;align-items:center;padding:8px 12px 18px;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-top:1px solid var(--line);flex-shrink:0;}
+    .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:10px;min-width:54px;color:var(--ink-4);font-size:10px;font-weight:500;background:transparent;border:none;cursor:pointer;transition:color .15s;}
+    .tab.active{color:var(--ink);}
+    .tab-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:1px;}
+    .tab.active .tab-dot{background:var(--ink);}
+
+    /* ── Cards & Rows ─────────────────────────────── */
+    .card{background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;}
+    .card-pad{padding:16px;}
+    .row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line-2);}
+    .row:last-child{border-bottom:none;}
+    .row-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg-sunken);color:var(--ink-3);}
+    .row-icon.ok{background:var(--ok-50);color:var(--ok-700);}
+    .row-icon.warn{background:var(--warn-50);color:var(--warn-700);}
+    .row-icon.risk{background:var(--risk-50);color:var(--risk-700);}
+    .row-icon.info{background:var(--info-50);color:var(--info-700);}
+    .row-icon.violet{background:var(--violet-100);color:var(--violet-500);}
+    .row-main{flex:1;min-width:0;}
+    .row-title{font-size:14px;font-weight:500;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .row-sub{font-size:12px;color:var(--ink-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .row-amount{font-size:14px;font-weight:500;color:var(--ink);}
+    .row-amount.pos{color:var(--ok-700);}
+    .section-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);padding:16px 20px 8px;}
+
+    /* ── Pills & Dots ─────────────────────────────── */
+    .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:500;background:var(--bg-sunken);color:var(--ink-3);border:1px solid var(--line);}
+    .pill-ok{background:var(--ok-50);color:var(--ok-700);border-color:var(--ok-100);}
+    .pill-warn{background:var(--warn-50);color:var(--warn-700);border-color:var(--warn-100);}
+    .pill-risk{background:var(--risk-50);color:var(--risk-700);border-color:var(--risk-100);}
+    .pill-info{background:var(--info-50);color:var(--info-700);border-color:var(--info-100);}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-4);flex-shrink:0;}
+    .dot-ok{background:var(--ok-500);}
+    .dot-warn{background:var(--warn-500);}
+    .dot-risk{background:var(--risk-500);}
+    .dot-info{background:var(--info-500);}
+
+    /* ── Buttons ──────────────────────────────────── */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--radius);border:1px solid var(--line);background:var(--bg-elev);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;letter-spacing:-0.01em;transition:background .1s;}
+    .btn:hover{background:var(--bg-sunken);}
+    .btn-primary{background:var(--ink);color:#fff;border-color:var(--ink);}
+    .btn-primary:hover{background:#2a2a2e;}
+    .btn-ok{background:var(--ok-500);color:#fff;border-color:var(--ok-500);}
+    .btn-sm{padding:6px 10px;font-size:12px;}
+    .btn-block{width:100%;}
+    .flex-1{flex:1;}
+
+    /* ── Progress ─────────────────────────────────── */
+    .progress{height:5px;background:var(--line);border-radius:100px;overflow:hidden;}
+    .progress-bar{height:100%;background:var(--ok-500);border-radius:100px;transition:width .3s;}
+
+    /* ── Chat messages ────────────────────────────── */
+    .msg{padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;max-width:85%;}
+    .msg-user{background:var(--ink);color:#fff;border-bottom-right-radius:4px;}
+    .msg-assistant{background:var(--bg-sunken);color:var(--ink);border-bottom-left-radius:4px;}
+    .agent-avatar{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+    .pulse-dot{width:5px;height:5px;border-radius:50%;background:var(--ink-3);animation:pulse-scale .9s ease-in-out infinite;}
+    .pulse-dot:nth-child(2){animation-delay:.15s;}
+    .pulse-dot:nth-child(3){animation-delay:.3s;}
+
+    /* ── Login screen ─────────────────────────────── */
+    .login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px 32px;gap:0;}
+    .login-input{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-elev);font-size:15px;color:var(--ink);outline:none;font-family:inherit;}
+    .login-input:focus{border-color:var(--ink);}
+    .login-error{background:var(--risk-50);color:var(--risk-700);border:1px solid var(--risk-100);border-radius:var(--radius);padding:10px 14px;font-size:13px;width:100%;}
+
+    /* ── Upload dropzone ──────────────────────────── */
+    .dropzone{border:1.5px dashed var(--line);border-radius:var(--radius-lg);padding:28px 20px;text-align:center;background:repeating-linear-gradient(45deg,#FBFAF6 0 10px,#FAFAF7 10px 20px);cursor:pointer;transition:border-color .15s;}
+    .dropzone:hover,.dropzone.drag{border-color:var(--ink);}
+
+    /* ── Sheet ────────────────────────────────────── */
+    .sheet{background:var(--bg-elev);border-radius:24px 24px 0 0;border-top:1px solid var(--line);}
+
+    /* ── Animations ───────────────────────────────── */
+    @keyframes pulse-scale{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.4);opacity:1}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .fade-in{animation:fade-in .2s ease both;}
+
+    /* ── Loading spinner ──────────────────────────── */
+    .spinner{width:20px;height:20px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+// ══════════════════════════════════════════════════
+// CONFIG — IP da sua VPS
+// ══════════════════════════════════════════════════
+const API_BASE = 'http://187.127.251.194';
+
+// ── API helper ────────────────────────────────────
+const api = {
+  token: localStorage.getItem('contabil_token'),
+  async req(method, path, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    const res = await fetch(API_BASE + path, {
+      method, headers, body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro na requisição');
+    return data;
+  },
+  get: (p) => api.req('GET', p),
+  post: (p, b) => api.req('POST', p, b),
+  patch: (p, b) => api.req('PATCH', p, b),
+  delete: (p) => api.req('DELETE', p),
+};
+
+// ── Formatters ────────────────────────────────────
+const BRL = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n || 0);
+const fmtDate = (d) => { try { return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }); } catch { return d; }};
+
+// ══════════════════════════════════════════════════
+// ICONS
+// ══════════════════════════════════════════════════
+const { useState, useEffect, useRef, useCallback } = React;
+const Icon = ({ d, size=18, stroke=1.75, children, style, color }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color||"currentColor"}
+       strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={style}>
+    {children || <path d={d}/>}
+  </svg>
+);
+const I = {
+  home:     (p) => <Icon {...p}><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1v-9.5Z"/></Icon>,
+  inbox:    (p) => <Icon {...p}><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></Icon>,
+  sparkle:  (p) => <Icon {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></Icon>,
+  chart:    (p) => <Icon {...p}><path d="M3 3v18h18"/><path d="M7 16l4-4 4 3 5-7"/></Icon>,
+  bell:     (p) => <Icon {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></Icon>,
+  chevR:    (p) => <Icon {...p}><path d="m9 6 6 6-6 6"/></Icon>,
+  chevL:    (p) => <Icon {...p}><path d="m15 6-6 6 6 6"/></Icon>,
+  chevD:    (p) => <Icon {...p}><path d="m6 9 6 6 6-6"/></Icon>,
+  check:    (p) => <Icon {...p}><path d="M20 6 9 17l-5-5"/></Icon>,
+  x:        (p) => <Icon {...p}><path d="M18 6 6 18M6 6l12 12"/></Icon>,
+  alert:    (p) => <Icon {...p}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></Icon>,
+  shield:   (p) => <Icon {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></Icon>,
+  doc:      (p) => <Icon {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></Icon>,
+  bank:     (p) => <Icon {...p}><path d="M3 21h18M3 10h18M5 6l7-4 7 4M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></Icon>,
+  upload:   (p) => <Icon {...p}><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 21H4"/></Icon>,
+  send:     (p) => <Icon {...p}><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></Icon>,
+  settings: (p) => <Icon {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></Icon>,
+  search:   (p) => <Icon {...p}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></Icon>,
+  receipt:  (p) => <Icon {...p}><path d="M4 2v20l3-2 3 2 3-2 3 2 3-2 3 2V2l-3 2-3-2-3 2-3-2-3 2-3-2Z"/><path d="M8 8h8M8 12h8M8 16h5"/></Icon>,
+  refresh:  (p) => <Icon {...p}><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></Icon>,
+  download: (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></Icon>,
+  more:     (p) => <Icon {...p}><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></Icon>,
+  filter:   (p) => <Icon {...p}><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z"/></Icon>,
+  plus:     (p) => <Icon {...p}><path d="M12 5v14M5 12h14"/></Icon>,
+  flag:     (p) => <Icon {...p}><path d="M4 21V4h12l-2 5 2 5H4"/></Icon>,
+  wallet:   (p) => <Icon {...p}><path d="M20 12V8a2 2 0 0 0-2-2H4v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M22 12h-4a2 2 0 0 0 0 4h4"/></Icon>,
+  logout:   (p) => <Icon {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></Icon>,
+};
+
+// ══════════════════════════════════════════════════
+// SHARED COMPONENTS
+// ══════════════════════════════════════════════════
+const TopBar = ({ title, left, right, sub }) => (
+  <div className="topbar" style={{ flexDirection: 'column', gap: 0, padding: '10px 16px 12px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ width: 34, display: 'flex' }}>{left}</div>
+      <div className="title">{title}</div>
+      <div style={{ width: 34, display: 'flex', justifyContent: 'flex-end' }}>{right}</div>
+    </div>
+    {sub && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>{sub}</div>}
+  </div>
+);
+
+const TabBar = ({ active, onNav }) => {
+  const tabs = [
+    { id: 'dashboard', label: 'Início', Icon: I.home },
+    { id: 'upload',    label: 'Documentos', Icon: I.inbox },
+    { id: 'chat',      label: 'Agente', Icon: I.sparkle },
+    { id: 'report',    label: 'Relatório', Icon: I.chart },
+  ];
+  return (
+    <div className="tabbar">
+      {tabs.map(t => (
+        <button key={t.id} className={`tab ${active === t.id ? 'active' : ''}`} onClick={() => onNav(t.id)}>
+          <t.Icon size={22}/>
+          <span>{t.label}</span>
+          <span className="tab-dot"/>
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const Donut = ({ pct = 0, size = 108, stroke = 10 }) => {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r, dash = (pct / 100) * c;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke}/>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--ok-500)" strokeWidth={stroke}
+              strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
+              transform={`rotate(-90 ${size/2} ${size/2})`} style={{ transition: 'stroke-dasharray .5s' }}/>
+      <text x={size/2} y={size/2 - 2} textAnchor="middle" dominantBaseline="central"
+            style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', fill: 'var(--ink)' }}>{pct}%</text>
+      <text x={size/2} y={size/2 + 20} textAnchor="middle" dominantBaseline="central"
+            style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.06em', fill: 'var(--ink-3)', textTransform: 'uppercase' }}>conciliado</text>
+    </svg>
+  );
+};
+
+const StatusPill = ({ kind, label }) => {
+  const map = { ok: 'pill-ok', warn: 'pill-warn', risk: 'pill-risk', info: 'pill-info' };
+  return <span className={`pill ${map[kind] || ''}`}><span className={`dot dot-${kind}`}/>{label || kind}</span>;
+};
+
+const Spinner = () => <div className="spinner"/>;
+
+// ══════════════════════════════════════════════════
+// LOGIN SCREEN
+// ══════════════════════════════════════════════════
+const Login = ({ onLogin }) => {
+  const [email, setEmail] = useState('demo@contabil.app');
+  const [password, setPassword] = useState('demo123');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async () => {
+    setLoading(true); setError('');
+    try {
+      const data = await api.post('/auth/login', { email, password });
+      api.token = data.token;
+      localStorage.setItem('contabil_token', data.token);
+      onLogin(data.user);
+    } catch (e) {
+      setError(e.message || 'Erro ao conectar com o servidor');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="app">
+      <div className="login-wrap">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 20 }}>
+          <rect x="2" y="2" width="20" height="20" rx="6" fill="var(--ink)"/>
+          <path d="M7 13.5l3 3 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <div className="h2" style={{ marginBottom: 6 }}>Contábil</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 32, textAlign: 'center' }}>
+          Conciliação contábil com IA
+        </div>
+
+        {error && <div className="login-error" style={{ marginBottom: 12 }}>{error}</div>}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginBottom: 16 }}>
+          <input className="login-input" type="email" placeholder="Email" value={email}
+            onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()}/>
+          <input className="login-input" type="password" placeholder="Senha" value={password}
+            onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()}/>
+        </div>
+
+        <button className="btn btn-primary btn-block" style={{ padding: 14 }} onClick={handleLogin} disabled={loading}>
+          {loading ? <Spinner/> : 'Entrar'}
+        </button>
+
+        <div style={{ marginTop: 20, padding: '10px 14px', background: 'var(--bg-sunken)', borderRadius: 10, fontSize: 12, color: 'var(--ink-3)', width: '100%' }}>
+          <strong style={{ color: 'var(--ink)' }}>Demo:</strong> demo@contabil.app / demo123
+        </div>
+
+        <div style={{ marginTop: 16, fontSize: 11, color: 'var(--ink-4)', textAlign: 'center' }}>
+          Conectado em: {API_BASE}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════
+const Dashboard = ({ onNav, onTx, onAlert }) => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/api/dashboard/stats?period=2026-11')
+      .then(setStats)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div className="app">
+      <TopBar title="Contábil" right={<button className="icon-btn"><I.settings size={20}/></button>}/>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner/></div>
+      <TabBar active="dashboard" onNav={onNav}/>
+    </div>
+  );
+
+  return (
+    <div className="app">
+      <TopBar title="Contábil" left={<button className="icon-btn"><I.settings size={20}/></button>}
+        right={<button className="icon-btn" style={{ position: 'relative' }} onClick={() => onNav('alerts')}>
+          <I.bell size={20}/>
+          {stats?.alertas_ativos > 0 && <span style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: '50%', background: 'var(--risk-500)', border: '2px solid #fff' }}/>}
+        </button>}/>
+
+      <div className="scroll">
+        {/* Period */}
+        <div style={{ padding: '16px 20px 8px' }}>
+          <div className="label">Período</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}>
+            <div className="h1">Novembro</div>
+            <div style={{ fontSize: 16, color: 'var(--ink-3)', fontWeight: 500 }}>2026</div>
+          </div>
+        </div>
+
+        {/* Hero donut */}
+        <div style={{ padding: '8px 20px 0' }}>
+          <div className="card" style={{ background: 'linear-gradient(180deg,#fff 0%,#FBFAF6 100%)' }}>
+            <div className="card-pad" style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+              <Donut pct={stats?.conciliadoPct || 0} size={108} stroke={10}/>
+              <div style={{ flex: 1 }}>
+                {[
+                  { dot: 'ok', label: 'Conciliado', val: stats?.conciliado },
+                  { dot: 'warn', label: 'Divergentes', val: stats?.divergentes },
+                  { dot: 'risk', label: 'Alertas de risco', val: stats?.riscos },
+                ].map(r => (
+                  <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                    <span className={`dot dot-${r.dot}`}/>
+                    <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>{r.label}</span>
+                    <span style={{ marginLeft: 'auto', fontWeight: 600, fontSize: 13 }}>{r.val ?? '—'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ borderTop: '1px solid var(--line-2)', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, background: '#FBFAF6', cursor: 'pointer' }} onClick={() => onNav('chat')}>
+              <span className="agent-avatar" style={{ width: 22, height: 22, fontSize: 10 }}>AI</span>
+              <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Agente revisou <b style={{ color: 'var(--ink)' }}>{stats?.total || 0} lançamentos</b></span>
+              <I.chevR size={14} color="var(--ink-3)" style={{ marginLeft: 'auto' }}/>
+            </div>
+          </div>
+        </div>
+
+        {/* Alerts highlight */}
+        {stats?.alertas_ativos > 0 && <>
+          <div className="section-label" style={{ display: 'flex', alignItems: 'center' }}>
+            <span>Requer sua atenção</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ink-2)', fontWeight: 500, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }} onClick={() => onNav('alerts')}>Ver tudo →</span>
+          </div>
+          <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="card" style={{ borderLeft: '3px solid var(--risk-500)', cursor: 'pointer' }} onClick={() => onNav('alerts')}>
+              <div className="row" style={{ padding: 14 }}>
+                <div className="row-icon risk"><I.alert size={18}/></div>
+                <div className="row-main">
+                  <div className="row-title">{stats?.riscos} alerta(s) de risco ativo(s)</div>
+                  <div className="row-sub">Requerem atenção imediata</div>
+                </div>
+                <I.chevR size={16} color="var(--ink-3)"/>
+              </div>
+            </div>
+          </div>
+        </>}
+
+        {/* Accounts */}
+        <div className="section-label">Contas conectadas</div>
+        <div style={{ padding: '0 20px' }}>
+          <div className="card">
+            {(stats?.contas || []).map(c => (
+              <div key={c.id} className="row">
+                <div className="row-icon" style={{ background: c.cor + '22', color: c.cor, fontWeight: 700, fontSize: 11 }}>{c.sigla}</div>
+                <div className="row-main">
+                  <div className="row-title">{c.nome.split(' — ')[0]}</div>
+                  <div className="row-sub mono">{c.nome.split(' — ')[1]}</div>
+                </div>
+                <div className="row-amount num">{BRL(c.saldo)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        <div style={{ padding: '16px 20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <button className="btn" style={{ padding: 14, flexDirection: 'column', gap: 6, alignItems: 'flex-start' }} onClick={() => onNav('upload')}>
+            <I.upload size={18}/><div style={{ fontSize: 13, fontWeight: 500 }}>Enviar documentos</div>
+          </button>
+          <button className="btn" style={{ padding: 14, flexDirection: 'column', gap: 6, alignItems: 'flex-start' }} onClick={() => onNav('chat')}>
+            <I.sparkle size={18}/><div style={{ fontSize: 13, fontWeight: 500 }}>Perguntar ao agente</div>
+          </button>
+        </div>
+
+        {/* Transactions quick view */}
+        <div className="section-label" style={{ display: 'flex', alignItems: 'center' }}>
+          <span>Lançamentos recentes</span>
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ink-2)', fontWeight: 500, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }} onClick={() => onNav('transactions')}>Ver todos →</span>
+        </div>
+        <TransactionsMini onTx={onTx}/>
+        <div style={{ height: 8 }}/>
+      </div>
+      <TabBar active="dashboard" onNav={onNav}/>
+    </div>
+  );
+};
+
+// Mini transaction list for dashboard
+const TransactionsMini = ({ onTx }) => {
+  const [txs, setTxs] = useState([]);
+  useEffect(() => {
+    api.get('/api/transactions?period=2026-11&limit=5')
+      .then(d => setTxs(d.transactions || []))
+      .catch(console.error);
+  }, []);
+  return (
+    <div style={{ padding: '0 20px' }}>
+      <div className="card">
+        {txs.slice(0, 5).map(t => (
+          <div key={t.id} className="row" style={{ cursor: 'pointer' }} onClick={() => onTx && onTx(t)}>
+            <div className={`row-icon ${t.status}`}>
+              {t.status === 'ok' && <I.check size={16}/>}
+              {(t.status === 'warn' || t.status === 'risk') && <I.alert size={16}/>}
+              {t.status === 'pending' && <I.more size={16}/>}
+            </div>
+            <div className="row-main">
+              <div className="row-title">{t.counterparty}</div>
+              <div className="row-sub">{t.category}</div>
+            </div>
+            <div className={`row-amount num ${t.amount > 0 ? 'pos' : ''}`}>
+              {t.amount > 0 ? '+' : ''}{BRL(t.amount)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// TRANSACTIONS SCREEN
+// ══════════════════════════════════════════════════
+const Transactions = ({ onNav, onBack }) => {
+  const [txs, setTxs] = useState([]);
+  const [filter, setFilter] = useState('todos');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({});
+
+  useEffect(() => {
+    const status = filter === 'todos' ? '' : filter;
+    api.get(`/api/transactions?period=2026-11&status=${status}`)
+      .then(d => { setTxs(d.transactions || []); setStats({ total: d.total }); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [filter]);
+
+  const filterTabs = [
+    { id: 'todos', label: 'Todos' },
+    { id: 'conciliados', label: 'Conciliados', dot: 'ok' },
+    { id: 'divergentes', label: 'Divergentes', dot: 'warn' },
+    { id: 'riscos', label: 'Riscos', dot: 'risk' },
+  ];
+
+  return (
+    <div className="app">
+      <TopBar title="Lançamentos" sub={`Novembro · ${stats.total || 0} no período`}
+        left={<button className="icon-btn" onClick={onBack}><I.chevL size={20}/></button>}
+        right={<button className="icon-btn"><I.search size={20}/></button>}/>
+
+      <div style={{ display: 'flex', gap: 6, padding: '10px 16px 12px', borderBottom: '1px solid var(--line)', overflowX: 'auto' }}>
+        {filterTabs.map(t => (
+          <button key={t.id} onClick={() => setFilter(t.id)} style={{
+            padding: '7px 12px', borderRadius: 100, border: '1px solid var(--line)',
+            background: filter === t.id ? 'var(--ink)' : 'var(--bg-elev)',
+            color: filter === t.id ? '#fff' : 'var(--ink-2)',
+            fontSize: 12, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6,
+            whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
+          }}>
+            {t.dot && <span className={`dot dot-${t.dot}`} style={{ background: filter === t.id ? '#fff' : undefined }}/>}
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="scroll">
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spinner/></div>
+        ) : (
+          <div style={{ padding: '4px 20px 24px' }}>
+            {txs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-3)' }}>Nenhuma transação encontrada</div>
+            ) : (
+              <div className="card" style={{ marginTop: 16 }}>
+                {txs.map(t => (
+                  <div key={t.id} className="row">
+                    <div className={`row-icon ${t.status === 'pending' ? '' : t.status}`}>
+                      {t.status === 'ok' && <I.check size={16}/>}
+                      {(t.status === 'warn' || t.status === 'risk') && <I.alert size={16}/>}
+                      {t.status === 'pending' && <I.more size={16}/>}
+                    </div>
+                    <div className="row-main">
+                      <div className="row-title">{t.counterparty}</div>
+                      <div className="row-sub">{t.description?.substring(0, 40)}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className={`row-amount num ${t.amount > 0 ? 'pos' : ''}`}>
+                        {t.amount > 0 ? '+' : ''}{BRL(t.amount)}
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 2 }}>{fmtDate(t.date)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <TabBar active="dashboard" onNav={onNav}/>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// ALERTS SCREEN
+// ══════════════════════════════════════════════════
+const Alerts = ({ onNav, onBack }) => {
+  const [alerts, setAlerts] = useState([]);
+  const [exposure, setExposure] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/api/alerts?resolved=false')
+      .then(d => { setAlerts(d.alerts || []); setExposure(d.risk_exposure || 0); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const resolve = async (id) => {
+    try {
+      await api.patch(`/api/alerts/${id}/resolve`, { resolution_note: 'Resolvido pelo usuário' });
+      setAlerts(prev => prev.filter(a => a.id !== id));
+    } catch (e) { alert(e.message); }
+  };
+
+  const ignore = async (id) => {
+    try {
+      await api.patch(`/api/alerts/${id}/ignore`);
+      setAlerts(prev => prev.filter(a => a.id !== id));
+    } catch (e) { alert(e.message); }
+  };
+
+  return (
+    <div className="app">
+      <TopBar title="Alertas de risco" sub={`${alerts.length} ativos`}
+        left={<button className="icon-btn" onClick={onBack}><I.chevL size={20}/></button>}
+        right={<button className="icon-btn"><I.filter size={20}/></button>}/>
+
+      <div className="scroll">
+        {/* Exposure card */}
+        <div style={{ padding: '16px 20px 0' }}>
+          <div className="card" style={{ background: 'linear-gradient(180deg,var(--risk-50) 0%,#FBFAF6 80%)', border: '1px solid var(--risk-100)' }}>
+            <div className="card-pad" style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: '1px solid var(--risk-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--risk-500)' }}>
+                <I.shield size={24}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-0.02em' }}>Exposição potencial</div>
+                <div className="num" style={{ fontSize: 20, fontWeight: 600, color: 'var(--risk-700)', marginTop: 2 }}>{BRL(exposure)}</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>em {alerts.length} lançamentos sem lastro</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="section-label">Ativos</div>
+        <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}><Spinner/></div> :
+            alerts.length === 0 ? <div style={{ textAlign: 'center', padding: 30, color: 'var(--ink-3)' }}>✅ Nenhum alerta ativo</div> :
+            alerts.map(a => (
+              <div key={a.id} className="card fade-in" style={{ borderLeft: `3px solid var(--${a.level}-500)` }}>
+                <div style={{ padding: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <StatusPill kind={a.level} label={a.level === 'risk' ? 'Alto' : 'Médio'}/>
+                    <span style={{ fontSize: 11, color: 'var(--ink-4)', marginLeft: 'auto' }}>
+                      {new Date(a.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 500 }}>{a.title}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>{a.subtitle}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-2)', marginTop: 10, padding: '10px 12px', background: 'var(--bg-sunken)', borderRadius: 10, lineHeight: 1.5 }}>
+                    {a.detail}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+                    <button className="btn btn-sm" onClick={() => ignore(a.id)}>Ignorar</button>
+                    <button className="btn btn-sm btn-primary" style={{ marginLeft: 'auto' }} onClick={() => resolve(a.id)}>
+                      <I.check size={14}/>Resolver
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+        <div style={{ height: 20 }}/>
+      </div>
+      <TabBar active="dashboard" onNav={onNav}/>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// UPLOAD SCREEN
+// ══════════════════════════════════════════════════
+const Upload = ({ onNav }) => {
+  const [docs, setDocs] = useState([]);
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef();
+
+  useEffect(() => {
+    api.get('/api/upload').then(d => setDocs(d.documents || [])).catch(console.error);
+  }, []);
+
+  const uploadFiles = async (files) => {
+    setUploading(true);
+    const form = new FormData();
+    Array.from(files).forEach(f => form.append('files', f));
+    try {
+      const token = api.token;
+      const res = await fetch(API_BASE + '/api/upload', {
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      const refreshed = await api.get('/api/upload');
+      setDocs(refreshed.documents || []);
+    } catch (e) { alert('Erro: ' + e.message); }
+    finally { setUploading(false); }
+  };
+
+  const statusColor = { done: 'var(--ok-500)', processing: 'var(--info-500)', error: 'var(--risk-500)', pending: 'var(--ink-4)' };
+  const statusLabel = { done: 'Lido', processing: 'Processando…', error: 'Erro', pending: 'Na fila' };
+
+  return (
+    <div className="app">
+      <TopBar title="Documentos"
+        left={<button className="icon-btn" onClick={() => onNav('dashboard')}><I.chevL size={20}/></button>}
+        right={<button className="icon-btn"><I.more size={20}/></button>}/>
+
+      <div className="scroll">
+        <div style={{ padding: '16px 20px 0' }}>
+          <div className="h2">Enviar para conciliação</div>
+          <div style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 4, lineHeight: 1.4 }}>
+            O agente lê e cruza automaticamente. Suporta PDF, OFX, XML e imagens.
+          </div>
+        </div>
+
+        {/* Dropzone */}
+        <div style={{ padding: '16px 20px 0' }}>
+          <div className={`dropzone ${dragging ? 'drag' : ''}`}
+            onClick={() => fileRef.current.click()}
+            onDragOver={e => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={e => { e.preventDefault(); setDragging(false); uploadFiles(e.dataTransfer.files); }}>
+            <div style={{ display: 'inline-flex', width: 48, height: 48, borderRadius: 14, background: 'var(--bg-elev)', border: '1px solid var(--line)', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              {uploading ? <Spinner/> : <I.upload size={22} color="var(--ink-2)"/>}
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 500 }}>{uploading ? 'Enviando…' : 'Arraste arquivos aqui'}</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 4 }}>ou clique para escolher</div>
+            <input ref={fileRef} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.jpeg,.png,.csv" style={{ display: 'none' }} onChange={e => uploadFiles(e.target.files)}/>
+          </div>
+        </div>
+
+        {/* Uploaded documents */}
+        {docs.length > 0 && <>
+          <div className="section-label">Enviados</div>
+          <div style={{ padding: '0 20px' }}>
+            <div className="card">
+              {docs.map(d => (
+                <div key={d.id} className="row">
+                  <div className="row-icon info"><I.doc size={18}/></div>
+                  <div className="row-main">
+                    <div className="row-title">{d.filename}</div>
+                    <div className="row-sub">{(d.size / 1024).toFixed(0)} KB · {d.type}</div>
+                    {d.status === 'processing' && (
+                      <div className="progress" style={{ width: '100%', marginTop: 6 }}>
+                        <div className="progress-bar" style={{ width: '60%' }}/>
+                      </div>
+                    )}
+                  </div>
+                  <span className="pill" style={{ color: statusColor[d.status], borderColor: statusColor[d.status] + '44', background: statusColor[d.status] + '11', fontSize: 10 }}>
+                    {statusLabel[d.status]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>}
+
+        <div style={{ padding: '20px 20px 28px' }}>
+          <button className="btn btn-primary btn-block" style={{ padding: 14 }} onClick={() => fileRef.current.click()}>
+            <I.plus size={16}/>Novo envio
+          </button>
+        </div>
+      </div>
+      <TabBar active="upload" onNav={onNav}/>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// CHAT SCREEN
+// ══════════════════════════════════════════════════
+const Chat = ({ onNav }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef();
+
+  useEffect(() => {
+    api.get('/api/chat').then(d => setMessages(d.messages || [])).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages]);
+
+  const send = async (text) => {
+    const msg = text || input.trim();
+    if (!msg || sending) return;
+    setInput('');
+    setSending(true);
+    setMessages(prev => [...prev, { id: Date.now(), role: 'user', content: msg }]);
+    try {
+      const data = await api.post('/api/chat', { message: msg });
+      setMessages(prev => [...prev, data.message]);
+    } catch (e) {
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', content: 'Erro ao conectar com o agente: ' + e.message }]);
+    } finally { setSending(false); }
+  };
+
+  const suggestions = ['Quais são os riscos?', 'Mostrar divergências', 'Resumo do período'];
+
+  return (
+    <div className="app">
+      <TopBar
+        title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <span className="agent-avatar" style={{ width: 26, height: 26, fontSize: 11 }}>AI</span>
+          <span>Agente</span>
+          <span className="pill pill-ok" style={{ fontSize: 10, padding: '2px 6px' }}><span className="dot dot-ok"/>online</span>
+        </span>}
+        left={<button className="icon-btn" onClick={() => onNav('dashboard')}><I.chevL size={20}/></button>}
+        right={<button className="icon-btn"><I.more size={20}/></button>}/>
+
+      <div ref={scrollRef} className="scroll" style={{ padding: '12px 16px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {messages.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--ink-3)', fontSize: 13 }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>🤖</div>
+            Olá! Sou o Agente Contábil.<br/>Pergunte sobre transações, riscos ou relatórios.
+          </div>
+        )}
+
+        {messages.map((m, i) => (
+          <div key={m.id || i} className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start', gap: 6 }}>
+            <div className={`msg msg-${m.role === 'user' ? 'user' : 'assistant'}`}>{m.content}</div>
+            {m.suggestions?.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxWidth: '85%' }}>
+                {m.suggestions.map(s => (
+                  <button key={s} className="btn btn-sm" onClick={() => send(s)}>{s}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {sending && (
+          <div style={{ alignSelf: 'flex-start', padding: '10px 14px', background: 'var(--bg-sunken)', borderRadius: 16, display: 'inline-flex', gap: 3 }}>
+            <span className="pulse-dot"/><span className="pulse-dot"/><span className="pulse-dot"/>
+          </div>
+        )}
+      </div>
+
+      {/* Suggestions */}
+      {messages.length === 0 && (
+        <div style={{ padding: '0 16px 10px', display: 'flex', gap: 6, overflowX: 'auto' }}>
+          {suggestions.map(s => <button key={s} className="btn btn-sm" style={{ whiteSpace: 'nowrap', flexShrink: 0 }} onClick={() => send(s)}>{s}</button>)}
+        </div>
+      )}
+
+      {/* Input bar */}
+      <div style={{ padding: '8px 16px 24px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, background: 'var(--bg)' }}>
+        <input
+          style={{ flex: 1, padding: '10px 14px', borderRadius: 100, border: '1px solid var(--line)', background: 'var(--bg-sunken)', fontSize: 14, outline: 'none', fontFamily: 'inherit' }}
+          placeholder="Pergunte ao agente…"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
+          disabled={sending}
+        />
+        <button className="btn btn-primary" style={{ padding: '10px 14px', borderRadius: 100 }} onClick={() => send()} disabled={!input.trim() || sending}>
+          <I.send size={16}/>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// REPORT SCREEN
+// ══════════════════════════════════════════════════
+const Report = ({ onNav }) => {
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [reconciling, setReconciling] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/reports/summary?period=2026-11')
+      .then(setReport).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  const runReconcile = async () => {
+    setReconciling(true);
+    try {
+      const res = await api.post('/api/reconcile', { period: '2026-11' });
+      alert(`✅ ${res.message}\n\n${res.reconciled} conciliados · ${res.divergences} divergências · ${res.risks} riscos`);
+      const refreshed = await api.get('/api/reports/summary?period=2026-11');
+      setReport(refreshed);
+    } catch (e) { alert('Erro: ' + e.message); }
+    finally { setReconciling(false); }
+  };
+
+  return (
+    <div className="app">
+      <TopBar title="Fechamento" sub="Novembro 2026"
+        left={<button className="icon-btn" onClick={() => onNav('dashboard')}><I.chevL size={20}/></button>}
+        right={<button className="icon-btn"><I.download size={20}/></button>}/>
+
+      <div className="scroll">
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner/></div>
+        ) : report ? <>
+          {/* Hero card */}
+          <div style={{ padding: '16px 20px 0' }}>
+            <div className="card" style={{ background: 'var(--ink)', color: '#fff', border: 'none' }}>
+              <div style={{ padding: '18px 18px 14px' }}>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>
+                  Resultado
+                </div>
+                <div className="num" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', marginTop: 6 }}>
+                  {BRL(Math.abs(report.resultado))}
+                  <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 14, fontWeight: 400 }}>
+                    {report.resultado >= 0 ? ' lucro' : ' prejuízo'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 14, marginTop: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Entradas</div>
+                    <div className="num" style={{ fontSize: 15, fontWeight: 500, marginTop: 2, color: 'var(--ok-500)' }}>+{BRL(report.totalReceitas)}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Saídas</div>
+                    <div className="num" style={{ fontSize: 15, fontWeight: 500, marginTop: 2 }}>−{BRL(report.totalDespesas)}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Margem</div>
+                    <div className="num" style={{ fontSize: 15, fontWeight: 500, marginTop: 2, color: report.lucroMargin >= 0 ? 'var(--ok-500)' : 'var(--risk-500)' }}>
+                      {report.lucroMargin}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Status */}
+          <div className="section-label">Status da conciliação</div>
+          <div style={{ padding: '0 20px' }}>
+            <div className="card">
+              {[
+                { label: 'Conciliados', val: report.transacoes?.ok, color: 'var(--ok-500)' },
+                { label: 'Divergentes', val: report.transacoes?.warn, color: 'var(--warn-500)' },
+                { label: 'Riscos', val: report.transacoes?.risk, color: 'var(--risk-500)' },
+              ].map(r => {
+                const total = report.transacoes?.total || 1;
+                return (
+                  <div key={r.label} className="row">
+                    <div className="row-main">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <span className="row-title">{r.label}</span>
+                        <span style={{ marginLeft: 'auto', fontWeight: 600, fontSize: 13 }}>{r.val || 0}</span>
+                      </div>
+                      <div className="progress">
+                        <div className="progress-bar" style={{ width: `${((r.val || 0) / total) * 100}%`, background: r.color }}/>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Categories */}
+          {report.byCategory?.length > 0 && <>
+            <div className="section-label">Por categoria</div>
+            <div style={{ padding: '0 20px' }}>
+              <div className="card">
+                {report.byCategory.slice(0, 6).map(c => (
+                  <div key={c.name} className="row">
+                    <div className="row-main">
+                      <div className="row-title">{c.name}</div>
+                      <div className="row-sub">{c.count} lançamentos</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      {c.despesas > 0 && <div className="row-amount num">−{BRL(c.despesas)}</div>}
+                      {c.receitas > 0 && <div className="num" style={{ fontSize: 14, fontWeight: 500, color: 'var(--ok-700)' }}>+{BRL(c.receitas)}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>}
+
+          <div style={{ padding: '16px 20px 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button className="btn btn-primary btn-block" style={{ padding: 14 }} onClick={runReconcile} disabled={reconciling}>
+              {reconciling ? <><Spinner/>Reconciliando…</> : <><I.refresh size={16}/>Rodar conciliação automática</>}
+            </button>
+          </div>
+        </> : (
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-3)' }}>Sem dados para o período</div>
+        )}
+      </div>
+      <TabBar active="report" onNav={onNav}/>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// APP ROUTER
+// ══════════════════════════════════════════════════
+const App = () => {
+  const savedToken = localStorage.getItem('contabil_token');
+  const [user, setUser] = useState(null);
+  const [screen, setScreen] = useState('dashboard');
+  const [checkingAuth, setCheckingAuth] = useState(!!savedToken);
+
+  useEffect(() => {
+    if (!savedToken) return;
+    api.get('/auth/me')
+      .then(u => setUser(u))
+      .catch(() => { localStorage.removeItem('contabil_token'); api.token = null; })
+      .finally(() => setCheckingAuth(false));
+  }, []);
+
+  const handleLogin = (userData) => setUser(userData);
+  const handleLogout = () => {
+    localStorage.removeItem('contabil_token');
+    api.token = null;
+    setUser(null);
+    setScreen('dashboard');
+  };
+
+  if (checkingAuth) return (
+    <div className="phone-shell">
+      <div className="app" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <Spinner/>
+      </div>
+    </div>
+  );
+
+  if (!user) return <div className="phone-shell"><Login onLogin={handleLogin}/></div>;
+
+  const nav = (s) => setScreen(s);
+
+  const screens = {
+    dashboard:    <Dashboard onNav={nav} onTx={() => nav('transactions')} onAlert={() => nav('alerts')}/>,
+    transactions: <Transactions onNav={nav} onBack={() => nav('dashboard')}/>,
+    alerts:       <Alerts onNav={nav} onBack={() => nav('dashboard')}/>,
+    upload:       <Upload onNav={nav}/>,
+    chat:         <Chat onNav={nav}/>,
+    report:       <Report onNav={nav}/>,
+  };
+
+  return (
+    <div className="phone-shell">
+      {screens[screen] || screens.dashboard}
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
