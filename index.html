@@ -689,7 +689,7 @@ const EngajamentoDetalhe = ({engId,go}) => {
                 <div style={{fontWeight:600,fontSize:14}}>{uploading?'Enviando...':'Arraste os arquivos aqui'}</div>
                 <div style={{fontSize:12,color:'var(--ink3)',marginTop:4}}>Extrato bancário (OFX/PDF), Notas fiscais (XML/PDF), Contratos (PDF), Comprovantes</div>
                 <button className="btn pr sm" style={{marginTop:14}} onClick={e=>{e.stopPropagation();ref.current?.click();}}>{I.plus(12)}Selecionar arquivos</button>
-                <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.png,.csv,.xlsx" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
+                <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.txt,.csv,.xlsx,.jpg,.png,.jpeg" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
               </div>
             </div>
           </div>
