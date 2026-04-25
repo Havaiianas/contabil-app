@@ -3,121 +3,190 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Contabil - Conciliacao com IA</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<title>Agility ConcilIA</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
-:root{--bg:#F7F6F2;--sf:#FFF;--sf2:#F0EFE9;--bd:#E2E0D8;--bd2:#ECEAE3;--ink:#1C1C1F;--ink2:#44444A;--ink3:#78787F;--ink4:#ACACB2;--ok:#2D7D52;--okb:#EBF5EE;--okbd:#C3E0CE;--wn:#92600A;--wnb:#FEF3E2;--wnbd:#F5D9A0;--rk:#C0392B;--rkb:#FDECEA;--rkbd:#F5C0BB;--in:#1A5EA8;--inb:#EAF1FC;--inbd:#BAD1F5;--sw:240px;--r:10px;--rl:14px;--sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);}
+:root{
+  --bg:#FAF8F3;--sf:#FFFFFF;--sf2:#F2EFE7;--bd:#E4E0D6;--bd2:#EAE6DC;
+  --ink:#0F1020;--ink2:#2E3050;--ink3:#6B6E8A;--ink4:#9FA2BC;
+  --ok:#16A34A;--okb:#DCFCE7;--okbd:#86EFAC;
+  --wn:#D97706;--wnb:#FEF3C7;--wnbd:#FCD34D;
+  --rk:#DC2626;--rkb:#FEE2E2;--rkbd:#FCA5A5;
+  --in:#4C4EF5;--inb:#EEEEFF;--inbd:#A5A6FB;
+  --lime:#E6FF4C;--lime-ink:#0F1020;
+  --primary:#4C4EF5;
+  --sidebar:#0F1020;--r:8px;--rl:12px;
+  --sh:0 1px 2px rgba(15,16,32,.06),0 2px 8px rgba(15,16,32,.04);
+  --sh2:0 4px 20px rgba(15,16,32,.12);
+}
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{width:100%;height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg);overflow:hidden;}
+html,body{width:100%;height:100%;font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg);overflow:hidden;font-size:13px;}
 #root{width:100%;height:100%;}
+
+/* LAYOUT */
 .layout{display:flex;width:100%;height:100%;}
+.sidebar{width:220px;flex-shrink:0;height:100%;background:var(--sidebar);display:flex;flex-direction:column;overflow-y:auto;}
 .main{flex:1;height:100%;overflow:hidden;display:flex;flex-direction:column;min-width:0;}
-.mscroll{flex:1;overflow-y:auto;}
-.page{padding:32px 36px;max-width:1200px;width:100%;}
-.sidebar{width:var(--sw);flex-shrink:0;height:100%;background:var(--ink);display:flex;flex-direction:column;}
-.slogo{display:flex;align-items:center;gap:10px;padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);}
-.smark{width:32px;height:32px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.snav{padding:14px 12px 4px;}
-.snlbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:0 8px;margin-bottom:4px;}
-.sitem{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:500;color:rgba(255,255,255,.55);transition:background .12s,color .12s;border:none;background:transparent;width:100%;text-align:left;}
-.sitem:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);}
-.sitem.on{background:rgba(255,255,255,.12);color:#fff;}
-.sbadge{margin-left:auto;font-size:10px;font-weight:700;background:var(--rk);color:#fff;padding:2px 7px;border-radius:100px;}
-.sbot{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.08);}
-.suser{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .12s;}
-.suser:hover{background:rgba(255,255,255,.07);}
-.av{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
-.mh{display:none;align-items:center;gap:12px;padding:12px 16px;background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;}
-.mt{display:none;justify-content:space-around;padding:8px 0 16px;background:var(--sf);border-top:1px solid var(--bd);flex-shrink:0;}
-.mtab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 14px;font-size:10px;font-weight:500;color:var(--ink3);border:none;background:transparent;cursor:pointer;font-family:inherit;}
-.mtab.on{color:var(--ink);}
-.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
-.pt{font-size:26px;font-weight:700;letter-spacing:-.04em;}
-.ps{font-size:14px;color:var(--ink3);margin-top:3px;}
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-.sc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:20px;box-shadow:var(--sh);position:relative;overflow:hidden;}
-.scacc{position:absolute;top:0;left:0;width:3px;height:100%;}
-.scl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);}
-.scv{font-size:24px;font-weight:700;letter-spacing:-.04em;margin-top:8px;font-variant-numeric:tabular-nums;}
-.scs{font-size:12px;color:var(--ink3);margin-top:4px;}
+.topbar{height:48px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;padding:0 24px;flex-shrink:0;}
+.content{flex:1;overflow-y:auto;padding:28px 32px;max-width:1400px;width:100%;}
+
+/* SIDEBAR */
+.sb-brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-brand-name{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.02em;}
+.sb-brand-sub{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;text-transform:uppercase;letter-spacing:.06em;}
+.sb-eng{padding:12px 16px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.06);}
+.sb-eng-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.25);margin-bottom:6px;}
+.sb-eng-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);line-height:1.4;}
+.sb-eng-cnpj{font-size:10px;color:rgba(255,255,255,.35);font-family:'Geist Mono',monospace;margin-top:2px;}
+.sb-eng-period{font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;display:flex;align-items:center;gap:4px;}
+.sb-section{padding:14px 16px 4px;}
+.sb-section-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.2);margin-bottom:5px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);transition:all .12s;border:none;background:transparent;width:100%;text-align:left;position:relative;}
+.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8);}
+.sb-item.on{background:rgba(76,78,245,.18);color:#fff;padding-left:8px;border-left:2px solid var(--primary);}
+.sb-badge{margin-left:auto;font-size:9px;font-weight:700;background:var(--rk);color:#fff;padding:2px 6px;border-radius:100px;min-width:18px;text-align:center;}
+.sb-badge.ok{background:var(--ok);}
+.sb-badge.warn{background:var(--wn);}
+.sb-bottom{margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);}
+.sb-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px;border-radius:7px;transition:background .12s;}
+.sb-user:hover{background:rgba(255,255,255,.06);}
+.sb-av{width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+
+/* TOPBAR */
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3);}
+.tb-bc-sep{opacity:.4;}
+.tb-bc-cur{color:var(--ink);font-weight:500;}
+.tb-search{flex:1;max-width:340px;margin:0 auto;}
+.tb-search-inner{display:flex;align-items:center;gap:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:6px 12px;}
+.tb-search-inp{border:none;background:transparent;font-size:12px;color:var(--ink);outline:none;width:100%;font-family:inherit;}
+.tb-search-kbd{font-size:10px;color:var(--ink4);background:var(--bd2);padding:1px 5px;border-radius:4px;font-family:'Geist Mono',monospace;}
+.tb-actions{display:flex;align-items:center;gap:8px;margin-left:auto;}
+
+/* CARDS */
 .card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);}
-.ch{padding:14px 20px;border-bottom:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;}
-.ct{font-size:13px;font-weight:600;}
-.cb{padding:20px;}
+.ch{padding:13px 18px;border-bottom:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;}
+.ct{font-size:12px;font-weight:600;letter-spacing:-.01em;}
+.cb{padding:18px;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:18px;box-shadow:var(--sh);position:relative;}
+.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);}
+.stat-value{font-size:28px;font-weight:700;letter-spacing:-.04em;margin-top:6px;font-variant-numeric:tabular-nums;line-height:1;}
+.stat-sub{font-size:11px;color:var(--ink3);margin-top:5px;}
+.stat-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;}
+
+/* SCORE */
+.score-ring{position:relative;display:flex;align-items:center;justify-content:center;}
+
+/* TABLE */
 .tbl{width:100%;border-collapse:collapse;}
-.tbl th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);padding:10px 16px;text-align:left;border-bottom:1px solid var(--bd2);background:var(--sf2);white-space:nowrap;}
-.tbl td{padding:11px 16px;border-bottom:1px solid var(--bd2);font-size:13px;vertical-align:middle;}
+.tbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);padding:9px 16px;text-align:left;border-bottom:1px solid var(--bd2);background:var(--sf2);white-space:nowrap;}
+.tbl td{padding:10px 16px;border-bottom:1px solid var(--bd2);font-size:12px;vertical-align:middle;}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tr:hover td{background:var(--sf2);}
-.mono{font-family:'DM Mono',monospace;font-variant-numeric:tabular-nums;}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600;}
-.bok{background:var(--okb);color:var(--ok);border:1px solid var(--okbd);}
-.bwn{background:var(--wnb);color:var(--wn);border:1px solid var(--wnbd);}
-.brk{background:var(--rkb);color:var(--rk);border:1px solid var(--rkbd);}
-.bin{background:var(--inb);color:var(--in);border:1px solid var(--inbd);}
-.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.mono{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;border:1px solid;}
+.bok{background:var(--okb);color:var(--ok);border-color:var(--okbd);}
+.bwn{background:var(--wnb);color:var(--wn);border-color:var(--wnbd);}
+.brk{background:var(--rkb);color:var(--rk);border-color:var(--rkbd);}
+.bin{background:var(--inb);color:var(--in);border-color:var(--inbd);}
+.bgray{background:var(--sf2);color:var(--ink3);border-color:var(--bd);}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 .dok{background:var(--ok);} .dwn{background:var(--wn);} .drk{background:var(--rk);} .din{background:var(--in);}
-.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);border:1px solid var(--bd);background:var(--sf);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .12s;letter-spacing:-.01em;white-space:nowrap;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);border:1px solid var(--bd);background:var(--sf);color:var(--ink);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
 .btn:hover{background:var(--sf2);}
-.btn.pr{background:var(--ink);color:#fff;border-color:var(--ink);}
-.btn.pr:hover{background:#2d2d30;}
-.btn.sm{padding:6px 12px;font-size:12px;}
+.btn.pr{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn.pr:hover{background:#3A3CE0;}
+.btn.sm{padding:5px 10px;font-size:11px;}
 .btn.gh{background:transparent;border-color:transparent;}
 .btn.gh:hover{background:var(--sf2);}
-.btn:disabled{opacity:.5;cursor:not-allowed;}
-.inp{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:var(--r);background:var(--sf);font-size:14px;color:var(--ink);font-family:inherit;outline:none;transition:border-color .12s;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn.danger{background:var(--rkb);color:var(--rk);border-color:var(--rkbd);}
+
+/* INPUTS */
+.inp{width:100%;padding:8px 12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--sf);font-size:13px;color:var(--ink);font-family:inherit;outline:none;transition:border .12s;}
 .inp:focus{border-color:var(--ink);}
-.ftabs{display:flex;gap:3px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;}
-.ftab{padding:6px 14px;border-radius:7px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border:none;background:transparent;font-family:inherit;transition:all .12s;}
-.ftab.on{background:var(--sf);color:var(--ink);box-shadow:var(--sh);}
-.prog{height:6px;background:var(--bd);border-radius:100px;overflow:hidden;}
-.progb{height:100%;border-radius:100px;transition:width .4s;}
-.chat-layout{display:flex;flex-direction:column;height:100%;overflow:hidden;}
-.chat-msgs{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:12px;}
-.mrow{display:flex;gap:10px;align-items:flex-start;}
+
+/* PROGRESS BAR */
+.pbar{height:5px;background:var(--bd);border-radius:100px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:100px;transition:width .5s;}
+
+/* LOG */
+.log-line{padding:4px 0;border-bottom:1px solid var(--bd2);display:flex;gap:10px;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;}
+.log-ts{color:var(--ink4);flex-shrink:0;}
+.log-ok{color:var(--ok);}
+.log-warn{color:var(--wn);}
+.log-critico{color:var(--rk);font-weight:600;}
+.log-info{color:var(--ink3);}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px 28px;display:flex;flex-direction:column;gap:12px;}
+.mrow{display:flex;gap:9px;align-items:flex-start;}
 .mrow.me{flex-direction:row-reverse;}
-.bubble{padding:11px 15px;border-radius:14px;font-size:13.5px;line-height:1.55;max-width:620px;}
-.bubble.ai{background:var(--sf);border:1px solid var(--bd);color:var(--ink);border-bottom-left-radius:4px;}
-.bubble.me{background:var(--ink);color:#fff;border-bottom-right-radius:4px;}
-.agav{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
-.pulse{width:5px;height:5px;border-radius:50%;background:var(--ink3);animation:pulse .9s ease-in-out infinite;}
+.bubble{padding:10px 14px;border-radius:12px;font-size:12.5px;line-height:1.6;max-width:640px;white-space:pre-wrap;}
+.bubble.ai{background:var(--sf);border:1px solid var(--bd);color:var(--ink);border-bottom-left-radius:3px;}
+.bubble.me{background:var(--ink);color:#fff;border-bottom-right-radius:3px;}
+.agav{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.pulse{width:4px;height:4px;border-radius:50%;background:var(--ink3);animation:pulse .9s ease-in-out infinite;}
 .pulse:nth-child(2){animation-delay:.15s;} .pulse:nth-child(3){animation-delay:.3s;}
-.cbar{padding:14px 24px 20px;border-top:1px solid var(--bd);background:var(--sf);display:flex;gap:10px;flex-shrink:0;}
-.lpg{width:100%;height:100%;display:flex;}
-.ll{flex:1;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;}
-.lr{width:480px;display:flex;align-items:center;justify-content:center;padding:60px;background:var(--bg);}
-.lform{width:100%;max-width:360px;}
-.lfield{margin-bottom:14px;}
-.llbl{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px;display:block;}
-.lerr{background:var(--rkb);border:1px solid var(--rkbd);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--rk);margin-bottom:14px;}
-.dz{border:2px dashed var(--bd);border-radius:var(--rl);padding:48px 32px;text-align:center;cursor:pointer;transition:all .15s;background:var(--sf);}
-.dz:hover,.dz.drag{border-color:var(--ink);background:var(--sf2);}
-.twocol{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-@media(max-width:768px){
-  .sidebar{display:none;} .mh{display:flex;} .mt{display:flex;}
-  .page{padding:16px;} .sg{grid-template-columns:1fr 1fr;gap:10px;} .scv{font-size:20px;} .pt{font-size:20px;}
-  .ll{display:none;} .lr{width:100%;padding:32px 24px;}
-  .chat-msgs{padding:16px;} .cbar{padding:12px 16px 18px;}
-  .twocol{grid-template-columns:1fr !important;}
-}
-@media(max-width:420px){.sg{grid-template-columns:1fr;}}
+.chat-bar{padding:12px 20px 16px;border-top:1px solid var(--bd);background:var(--sf);display:flex;gap:8px;flex-shrink:0;}
+
+/* LOGIN */
+.login-pg{width:100%;height:100%;display:flex;}
+.login-l{flex:1;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;}
+.login-r{width:440px;display:flex;align-items:center;justify-content:center;padding:56px;background:var(--bg);}
+.lform{width:100%;max-width:340px;}
+.lfield{margin-bottom:12px;}
+.llbl{font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px;display:block;}
+.lerr{background:var(--rkb);border:1px solid var(--rkbd);border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--rk);margin-bottom:12px;}
+
+/* BENFORD CHART */
+.benford-bar{display:flex;align-items:flex-end;gap:3px;height:80px;}
+.bf-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.bf-bars{display:flex;align-items:flex-end;gap:1px;height:68px;}
+.bf-b{border-radius:2px 2px 0 0;min-width:8px;}
+
+/* GRID HELPERS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+.pt{font-size:22px;font-weight:700;letter-spacing:-.04em;}
+.ps{font-size:12px;color:var(--ink3);margin-top:3px;}
+
+/* RESPONSIVE */
+@media(max-width:900px){.sidebar{display:none;}.stats-row{grid-template-columns:1fr 1fr;}.g2,.g3{grid-template-columns:1fr;}}
+
+/* ANIMATIONS */
 @keyframes pulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.5);opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.fup{animation:fup .22s ease both;}
-.spin{width:18px;height:18px;border:2.5px solid var(--bd);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes fup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fup{animation:fup .2s ease both;}
+.spin{width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+
+/* INDICIO CARD */
+.indicio-card{padding:14px 16px;border-left:3px solid;border-radius:0 var(--r) var(--r) 0;background:var(--sf);margin-bottom:8px;border-top:1px solid var(--bd);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);}
+.lime-tag{background:var(--lime);color:var(--lime-ink);padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'Geist Mono',monospace;}
+.ia-found{background:var(--lime);color:var(--lime-ink);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.tagline{font-family:'Instrument Serif',serif;font-style:italic;font-size:22px;color:var(--ink);}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const API = 'https://187.127.251.194.nip.io';
-const api = {
-  token: localStorage.getItem('ct'),
+const {useState,useEffect,useRef,useCallback}=React;
+
+const api={
+  token:localStorage.getItem('ct'),
   async r(m,p,b){
     const h={'Content-Type':'application/json'};
     if(this.token) h['Authorization']=`Bearer ${this.token}`;
@@ -129,95 +198,111 @@ const api = {
   get:p=>api.r('GET',p),
   post:(p,b)=>api.r('POST',p,b),
   patch:(p,b)=>api.r('PATCH',p,b),
+  put:(p,b)=>api.r('PUT',p,b),
   del:p=>api.r('DELETE',p),
 };
-const BRL=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(n||0);
-const fdt=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}catch{return d}};
-const {useState,useEffect,useRef}=React;
 
-const Ico=({children,size=16,stroke=1.8,style})=>(
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={style}>{children}</svg>
+const BRL=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:0,maximumFractionDigits:0}).format(n||0);
+const BRLk=n=>n>=1000000?`R$ ${(n/1000000).toFixed(1)}M`:n>=1000?`R$ ${(n/1000).toFixed(0)}k`:BRL(n);
+const fdt=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}catch{return d}};
+
+// ICONS
+const Ico=({d,size=14,stroke=1.7,style,children})=>(
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={style}>
+    {children||<path d={d}/>}
+  </svg>
 );
 const I={
-  home:p=><Ico {...p}><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></Ico>,
-  txs:p=><Ico {...p}><path d="M3 3v18h18"/><path d="M7 16l4-4 4 3 5-7"/></Ico>,
-  bell:p=><Ico {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></Ico>,
-  up:p=><Ico {...p}><path d="M12 15V3m-5 5 5-5 5 5M20 21H4"/></Ico>,
-  chat:p=><Ico {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></Ico>,
-  rep:p=><Ico {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></Ico>,
-  ok:p=><Ico {...p}><path d="M20 6 9 17l-5-5"/></Ico>,
-  x:p=><Ico {...p}><path d="M18 6 6 18M6 6l12 12"/></Ico>,
-  send:p=><Ico {...p}><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></Ico>,
-  out:p=><Ico {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></Ico>,
-  ref:p=><Ico {...p}><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></Ico>,
-  dl:p=><Ico {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-5 5 5 5-5M12 15V3"/></Ico>,
-  sh:p=><Ico {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></Ico>,
-  pl:p=><Ico {...p}><path d="M12 5v14M5 12h14"/></Ico>,
+  overview: p=><Ico {...p}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></Ico>,
+  achados: p=><Ico {...p}><path d="m10.29 3.86-8.47 14.64A2 2 0 0 0 3.54 21h16.92a2 2 0 0 0 1.72-3l-8.47-14.64a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></Ico>,
+  matriz: p=><Ico {...p}><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></Ico>,
+  exec: p=><Ico {...p}><circle cx="12" cy="12" r="3"/><path d="M12 3v1M12 20v1M3 12h1M20 12h1M5.6 5.6l.7.7M17.7 17.7l.7.7M5.6 18.4l.7-.7M17.7 6.3l.7-.7"/></Ico>,
+  extrato: p=><Ico {...p}><path d="M3 21h18M3 10h18M5 6l7-4 7 4M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></Ico>,
+  upload: p=><Ico {...p}><path d="M12 15V3m-5 5 5-5 5 5M20 21H4"/></Ico>,
+  nfe: p=><Ico {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></Ico>,
+  contrato: p=><Ico {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></Ico>,
+  qsa: p=><Ico {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Ico>,
+  laudo: p=><Ico {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></Ico>,
+  forense: p=><Ico {...p}><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></Ico>,
+  flag: p=><Ico {...p}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></Ico>,
+  logout: p=><Ico {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Ico>,
+  run: p=><Ico {...p}><polygon points="5 3 19 12 5 21 5 3"/></Ico>,
+  dl: p=><Ico {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Ico>,
+  bell: p=><Ico {...p}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></Ico>,
+  send: p=><Ico {...p}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></Ico>,
+  ok: p=><Ico {...p}><polyline points="20 6 9 17 4 12"/></Ico>,
+  x: p=><Ico {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Ico>,
+  edit: p=><Ico {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></Ico>,
+  caret: p=><Ico {...p}><polyline points="9 18 15 12 9 6"/></Ico>,
 };
 
 const Spin=()=><div className="spin"/>;
-const Mark=()=>(<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 13.5l3 3 7-7" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>);
 
-const Donut=({pct=0,size=120,stroke=11})=>{
-  const r=(size-stroke)/2,c=2*Math.PI*r,dash=(pct/100)*c;
-  return(<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-    <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bd)" strokeWidth={stroke}/>
-    <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--ok)" strokeWidth={stroke} strokeDasharray={`${dash} ${c}`} strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} style={{transition:'stroke-dasharray .5s'}}/>
-    <text x={size/2} y={size/2-2} textAnchor="middle" dominantBaseline="central" style={{fontSize:size*.22,fontWeight:700,fill:'var(--ink)',fontFamily:'DM Sans'}}> {pct}%</text>
-    <text x={size/2} y={size/2+size*.17} textAnchor="middle" dominantBaseline="central" style={{fontSize:size*.075,fill:'var(--ink3)',fontFamily:'DM Sans',fontWeight:500,letterSpacing:'0.06em'}}> CONCILIADO</text>
-  </svg>);
-};
+// Agility ConcilIA isotipo — A com crossbar indigo e ponto lime
+const LogoA=({size=32,dark=false})=>(
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+    {/* Left pillar */}
+    <path d="M8 92 L50 8 L92 92" stroke={dark?"#fff":"#0F1020"} strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    {/* Crossbar — indigo */}
+    <line x1="25" y1="62" x2="72" y2="62" stroke="#4C4EF5" strokeWidth="9" strokeLinecap="round"/>
+    {/* Lime dot */}
+    <circle cx="72" cy="62" r="6" fill="#E6FF4C"/>
+  </svg>
+);
 
-const Sidebar=({cur,go,user,logout,na})=>{
-  const items=[
-    {id:'dashboard',lbl:'Dashboard',Ic:I.home},
-    {id:'transactions',lbl:'Lancamentos',Ic:I.txs},
-    {id:'alerts',lbl:'Alertas',Ic:I.bell,badge:na},
-    {id:'upload',lbl:'Documentos',Ic:I.up},
-    {id:'chat',lbl:'Agente IA',Ic:I.chat},
-    {id:'report',lbl:'Relatorio',Ic:I.rep},
-  ];
-  return(<nav className="sidebar">
-    <div className="slogo">
-      <div className="smark"><Mark/></div>
-      <div>
-        <div style={{fontSize:16,fontWeight:700,letterSpacing:'-.03em',color:'#fff'}}>Contabil</div>
-        <div style={{fontSize:10,color:'rgba(255,255,255,.35)',marginTop:1}}>Conciliacao com IA</div>
+const LogoFull=({dark=false})=>(
+  <div style={{display:'flex',alignItems:'center',gap:10}}>
+    <LogoA size={28} dark={dark}/>
+    <div>
+      <div style={{fontSize:14,fontWeight:700,letterSpacing:'-.03em',color:dark?'#fff':'var(--ink)',lineHeight:1.1}}>
+        Agility <span style={{color:'#4C4EF5'}}>Concil</span><span style={{color:'#4C4EF5',fontWeight:700}}>IA</span>
       </div>
     </div>
-    <div className="snav">
-      <div className="snlbl">Menu</div>
-      {items.map(it=>(<button key={it.id} className={`sitem ${cur===it.id?'on':''}`} onClick={()=>go(it.id)}>
-        <it.Ic size={15} stroke={cur===it.id?2.2:1.8}/>
-        {it.lbl}
-        {it.badge>0&&<span className="sbadge">{it.badge}</span>}
-      </button>))}
-    </div>
-    <div className="sbot">
-      <div className="suser" onClick={logout} title="Sair">
-        <div className="av">{user?.name?.[0]||'U'}</div>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:13,fontWeight:500,color:'rgba(255,255,255,.8)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.name}</div>
-          <div style={{fontSize:11,color:'rgba(255,255,255,.3)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.email}</div>
-        </div>
-        <I.out size={13} style={{color:'rgba(255,255,255,.25)',flexShrink:0}}/>
-      </div>
-    </div>
-  </nav>);
+  </div>
+);
+
+// Score Ring SVG
+const ScoreRing=({score,size=90})=>{
+  const stroke=8,r=(size-stroke)/2,c=2*Math.PI*r,dash=(score/100)*c;
+  const color=score>=80?'var(--primary)':score>=60?'var(--wn)':'var(--rk)';
+  return(
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bd)" strokeWidth={stroke}/>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+        strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
+        transform={`rotate(-90 ${size/2} ${size/2})`} style={{transition:'stroke-dasharray .6s'}}/>
+      <text x={size/2} y={size/2-2} textAnchor="middle" dominantBaseline="central"
+        style={{fontSize:size*.24,fontWeight:700,fill:'var(--ink)',fontFamily:'Geist'}}>{score}</text>
+      <text x={size/2} y={size/2+size*.17} textAnchor="middle" dominantBaseline="central"
+        style={{fontSize:size*.1,fill:'var(--ink3)',fontFamily:'Geist',fontWeight:500,letterSpacing:'0.04em'}}>SCORE</text>
+    </svg>
+  );
 };
 
-const MH=({cur})=>{
-  const t={dashboard:'Dashboard',transactions:'Lancamentos',alerts:'Alertas',upload:'Documentos',chat:'Agente IA',report:'Relatorio'};
-  return(<div className="mh">
-    <div style={{width:28,height:28,borderRadius:8,background:'var(--ink)',display:'flex',alignItems:'center',justifyContent:'center'}}><Mark/></div>
-    <span style={{fontWeight:600,fontSize:16,letterSpacing:'-.02em'}}>{t[cur]}</span>
-  </div>);
-};
-const MTabs=({cur,go,na})=>{
-  const tabs=[{id:'dashboard',lbl:'Inicio',Ic:I.home},{id:'transactions',lbl:'Lancamentos',Ic:I.txs},{id:'alerts',lbl:'Alertas',Ic:I.bell},{id:'chat',lbl:'Agente',Ic:I.chat},{id:'report',lbl:'Relatorio',Ic:I.rep}];
-  return(<div className="mt">{tabs.map(t=>(<button key={t.id} className={`mtab ${cur===t.id?'on':''}`} onClick={()=>go(t.id)}><t.Ic size={20} stroke={cur===t.id?2.2:1.8}/><span>{t.lbl}</span></button>))}</div>);
+// Benford mini chart
+const BenfordChart=({data})=>{
+  if(!data||!data.length) return null;
+  const maxVal=Math.max(...data.map(d=>Math.max(d.esperado,d.observado)));
+  return(
+    <div style={{display:'flex',alignItems:'flex-end',gap:4,height:90,padding:'0 4px'}}>
+      {data.map(d=>{
+        const hE=(d.esperado/maxVal)*70,hO=(d.observado/maxVal)*70;
+        const over=d.observado>d.esperado*1.3;
+        return(
+          <div key={d.digito} style={{display:'flex',flexDirection:'column',alignItems:'center',flex:1,gap:3}}>
+            <div style={{display:'flex',alignItems:'flex-end',gap:1,height:70}}>
+              <div style={{width:9,height:hE,background:'var(--bd)',borderRadius:'2px 2px 0 0'}}/>
+              <div style={{width:9,height:hO,background:over?'var(--rk)':'var(--ok)',borderRadius:'2px 2px 0 0',opacity:.85}}/>
+            </div>
+            <div style={{fontSize:9,color:over?'var(--rk)':'var(--ink4)',fontWeight:over?700:400}}>{d.digito}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
+// LOGIN
 const Login=({onLogin})=>{
   const [email,setEmail]=useState('demo@contabil.app');
   const [pass,setPass]=useState('demo123');
@@ -228,285 +313,632 @@ const Login=({onLogin})=>{
     try{const d=await api.post('/auth/login',{email,password:pass});api.token=d.token;localStorage.setItem('ct',d.token);onLogin(d.user);}
     catch(e){setErr(e.message);}finally{setLoading(false);}
   };
-  return(<div className="lpg">
-    <div className="ll">
-      <div style={{textAlign:'center',maxWidth:340}}>
-        <div style={{width:60,height:60,borderRadius:16,background:'rgba(255,255,255,.1)',border:'1px solid rgba(255,255,255,.12)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 22px'}}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M7 13.5l3 3 7-7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        </div>
-        <div style={{fontSize:30,fontWeight:700,letterSpacing:'-.05em',color:'#fff',marginBottom:10}}>Contabil</div>
-        <div style={{fontSize:14,color:'rgba(255,255,255,.45)',lineHeight:1.65}}>Conciliacao contabil automatizada com inteligencia artificial para empresas brasileiras.</div>
-        <div style={{marginTop:36,display:'flex',flexDirection:'column',gap:11,textAlign:'left'}}>
-          {['Conciliacao automatica com IA','Alertas de risco em tempo real','Chat com agente especializado','Relatorios e DRE gerencial'].map(f=>(<div key={f} style={{display:'flex',alignItems:'center',gap:10,color:'rgba(255,255,255,.65)',fontSize:13.5}}>
-            <div style={{width:20,height:20,borderRadius:6,background:'rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><I.ok size={12} stroke={2.5} style={{color:'rgba(255,255,255,.7)'}}/></div>{f}</div>))}
-        </div>
-      </div>
-    </div>
-    <div className="lr">
-      <div className="lform">
-        <div style={{marginBottom:30}}><div style={{fontSize:24,fontWeight:700,letterSpacing:'-.04em'}}>Entrar</div><div style={{fontSize:14,color:'var(--ink3)',marginTop:5}}>Acesse sua conta para continuar</div></div>
-        {err&&<div className="lerr">{err}</div>}
-        <div className="lfield"><label className="llbl">Email</label><input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="seu@email.com"/></div>
-        <div className="lfield"><label className="llbl">Senha</label><input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="••••••••"/></div>
-        <button className="btn pr" style={{width:'100%',padding:'12px',marginTop:6,fontSize:14,justifyContent:'center'}} onClick={submit} disabled={loading}>{loading?<><Spin/>Entrando...</>:'Entrar'}</button>
-        <div style={{marginTop:18,padding:'11px 14px',background:'var(--sf2)',border:'1px solid var(--bd)',borderRadius:'var(--r)',fontSize:13,color:'var(--ink3)'}}><strong style={{color:'var(--ink)'}}>Demo:</strong> demo@contabil.app / demo123</div>
-      </div>
-    </div>
-  </div>);
-};
-
-const Dashboard=({go})=>{
-  const [stats,setStats]=useState(null);
-  const [txs,setTxs]=useState([]);
-  const [loading,setLoading]=useState(true);
-  useEffect(()=>{
-    Promise.all([api.get('/api/dashboard/stats?period=2026-11'),api.get('/api/transactions?period=2026-11&limit=6')])
-    .then(([s,t])=>{setStats(s);setTxs(t.transactions||[]);}).catch(console.error).finally(()=>setLoading(false));
-  },[]);
-  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
-  const bm={ok:'bok',warn:'bwn',risk:'brk',pending:'bin'};
-  const lm={ok:'Conciliado',warn:'Divergencia',risk:'Risco',pending:'Pendente'};
-  return(<div className="page fup">
-    <div className="ph">
-      <div><div className="pt">Dashboard</div><div className="ps">Novembro 2026 - Periodo em andamento</div></div>
-      <button className="btn pr" onClick={()=>go('chat')}><I.chat size={14}/>Perguntar ao agente</button>
-    </div>
-    <div className="sg">
-      {[{l:'Saldo consolidado',v:BRL(stats?.saldo),s:'3 contas bancarias',a:'var(--ink)'},{l:'Conciliados',v:`${stats?.conciliado||0}`,s:`${stats?.conciliadoPct||0}% do periodo`,a:'var(--ok)'},{l:'Divergencias',v:`${stats?.divergentes||0}`,s:'Requerem revisao',a:'var(--wn)'},{l:'Alertas de risco',v:`${stats?.riscos||0}`,s:'Acao necessaria',a:'var(--rk)',click:()=>go('alerts')},].map(s=>(<div key={s.l} className="sc" onClick={s.click} style={{cursor:s.click?'pointer':'default'}}><div className="scacc" style={{background:s.a}}/><div className="scl">{s.l}</div><div className="scv">{s.v}</div><div className="scs">{s.s}</div></div>))}
-    </div>
-    <div className="twocol" style={{marginBottom:20}}>
-      <div className="card">
-        <div className="ch"><div className="ct">Conciliacao do periodo</div><button className="btn sm" onClick={()=>go('transactions')}><I.txs size={12}/>Ver lancamentos</button></div>
-        <div className="cb">
-          <div style={{display:'flex',alignItems:'center',gap:28}}>
-            <Donut pct={stats?.conciliadoPct||0} size={120}/>
-            <div style={{display:'flex',flexDirection:'column',gap:11}}>
-              {[{d:'dok',l:'Conciliados',v:stats?.conciliado},{d:'dwn',l:'Divergentes',v:stats?.divergentes},{d:'drk',l:'Riscos',v:stats?.riscos},{d:'din',l:'Pendentes',v:stats?.pendentes}].map(r=>(<div key={r.l} style={{display:'flex',alignItems:'center',gap:8,fontSize:13}}><span className={`dot ${r.d}`}/><span style={{color:'var(--ink2)',flex:1}}>{r.l}</span><span style={{fontWeight:700,fontVariantNumeric:'tabular-nums'}}>{r.v??0}</span></div>))}
-            </div>
+  return(
+    <div className="login-pg">
+      <div className="login-l">
+        <div style={{textAlign:'center',maxWidth:320}}>
+          <div style={{margin:'0 auto 20px',display:'flex',justifyContent:'center'}}>
+            <LogoA size={64} dark={true}/>
+          </div>
+          <div style={{fontSize:26,fontWeight:700,letterSpacing:'-.05em',color:'#fff',marginBottom:8}}><span style={{color:'rgba(255,255,255,.9)'}}>Agility </span><span style={{color:'var(--lime)'}}>Concil</span><span style={{color:'var(--lime)'}}>IA</span></div>
+          <div style={{fontSize:17,fontFamily:"Instrument Serif",fontStyle:"italic",color:"rgba(255,255,255,.8)",lineHeight:1.5,marginBottom:8}}>A inteligência que concilia.</div><div style={{fontSize:12,color:"rgba(255,255,255,.4)",lineHeight:1.6}}>Plataforma de auditoria contínua para escritórios de contabilidade.</div>
+          <div style={{marginTop:32,display:'flex',flexDirection:'column',gap:10,textAlign:'left'}}>
+            {['Detecção de fraude com Lei de Benford','Cruzamento QSA e partes relacionadas','Matriz de conformidade automatizada','Laudo de auditoria com IA'].map(f=>(
+              <div key={f} style={{display:'flex',alignItems:'center',gap:9,color:'rgba(255,255,255,.55)',fontSize:12}}>
+                <div style={{width:18,height:18,borderRadius:5,background:'rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <I.ok size={11} stroke={2.5} style={{color:'rgba(255,255,255,.6)'}}/>
+                </div>{f}
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <div className="card">
-        <div className="ch"><div className="ct">Contas bancarias</div></div>
-        {(stats?.contas||[]).map(a=>(<div key={a.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 20px',borderBottom:'1px solid var(--bd2)'}}><div style={{width:36,height:36,borderRadius:9,background:a.cor+'22',color:a.cor,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:11,flexShrink:0}}>{a.sigla}</div><div style={{flex:1,minWidth:0}}><div style={{fontWeight:500,fontSize:13,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.nome.split(' - ')[0]}</div><div style={{fontSize:11,color:'var(--ink3)',fontFamily:'DM Mono'}}>{a.nome.split(' - ')[1]||a.nome.split(' - ')[0]}</div></div><div style={{fontWeight:600,fontSize:13,fontVariantNumeric:'tabular-nums'}}>{BRL(a.saldo)}</div></div>))}
-        <div style={{padding:'10px 20px',display:'flex',justifyContent:'space-between',fontSize:12,background:'var(--sf2)',borderTop:'1px solid var(--bd2)'}}><span style={{fontWeight:600,color:'var(--ink3)'}}>Total</span><span style={{fontWeight:700,fontVariantNumeric:'tabular-nums'}}>{BRL(stats?.saldo)}</span></div>
+      <div className="login-r">
+        <div className="lform">
+          <div style={{marginBottom:26}}><div style={{fontSize:20,fontWeight:700,letterSpacing:'-.04em'}}>Entrar</div><div style={{fontSize:12,color:'var(--ink3)',marginTop:4}}>Acesse sua conta para continuar</div></div>
+          {err&&<div className="lerr">{err}</div>}
+          <div className="lfield"><label className="llbl">Email</label><input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="seu@email.com"/></div>
+          <div className="lfield"><label className="llbl">Senha</label><input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="••••••••"/></div>
+          <button className="btn pr" style={{width:'100%',padding:'10px',marginTop:4,fontSize:13,justifyContent:'center'}} onClick={submit} disabled={loading}>{loading?<><Spin/>Entrando...</>:'Entrar'}</button>
+          <div style={{marginTop:14,padding:'10px 12px',background:'var(--sf2)',border:'1px solid var(--bd)',borderRadius:'var(--r)',fontSize:11,color:'var(--ink3)'}}><strong style={{color:'var(--ink)'}}>Demo:</strong> demo@contabil.app / demo123</div>
+        </div>
       </div>
     </div>
-    <div className="card">
-      <div className="ch"><div className="ct">Lancamentos recentes</div><button className="btn sm" onClick={()=>go('transactions')}>Ver todos</button></div>
-      <div style={{overflowX:'auto'}}>
-        <table className="tbl">
-          <thead><tr><th>Favorecido</th><th>Categoria</th><th>Data</th><th style={{textAlign:'right'}}>Valor</th><th>Status</th></tr></thead>
-          <tbody>{txs.map(t=>(<tr key={t.id}><td style={{fontWeight:500}}>{t.counterparty}</td><td style={{color:'var(--ink3)'}}>{t.category}</td><td className="mono" style={{color:'var(--ink3)'}}>{fdt(t.date)}</td><td className="mono" style={{textAlign:'right',fontWeight:600,color:t.amount>0?'var(--ok)':undefined}}>{t.amount>0?'+':''}{BRL(t.amount)}</td><td><span className={`badge ${bm[t.status]||'bin'}`}><span className={`dot ${t.status==='pending'?'din':'d'+t.status[0]+t.status.slice(1,2)}`}/> {lm[t.status]||t.status}</span></td></tr>))}</tbody>
-        </table>
-      </div>
-    </div>
-  </div>);
+  );
 };
 
-const Transactions=()=>{
-  const [txs,setTxs]=useState([]);
+// SIDEBAR
+const Sidebar=({cur,go,user,logout,eng,nAchados})=>{
+  const sections=[
+    {label:'Auditoria',items:[
+      {id:'overview',lbl:'Visão geral',Ic:I.overview},
+      {id:'achados',lbl:'Achados',Ic:I.achados,badge:nAchados,badgeType:'risk'},
+      {id:'matriz',lbl:'Matriz de conformidade',Ic:I.matriz},
+      {id:'exec',lbl:'Execução do agente',Ic:I.exec},
+    ]},
+    {label:'Fontes',items:[
+      {id:'extratos',lbl:'Extratos',Ic:I.extrato,badge:3,badgeType:'ok'},
+      {id:'uploads',lbl:'Uploads',Ic:I.upload,badge:48,badgeType:'ok'},
+      {id:'notas',lbl:'Notas fiscais',Ic:I.nfe,badge:412,badgeType:'ok'},
+      {id:'contratos',lbl:'Contratos',Ic:I.contrato,badge:31,badgeType:'ok'},
+      {id:'qsa',lbl:'QSA / Receita',Ic:I.qsa},
+    ]},
+    {label:'Entregáveis',items:[
+      {id:'laudo',lbl:'Laudo de auditoria',Ic:I.laudo},
+      {id:'forense',lbl:'Assistente forense',Ic:I.forense},
+    ]},
+  ];
+  return(
+    <nav className="sidebar">
+      <div className="sb-brand" style={{paddingBottom:16}}>
+        <LogoFull dark={true}/>
+        <div style={{fontSize:9,color:'rgba(255,255,255,.25)',marginTop:6,textTransform:'uppercase',letterSpacing:'.1em',paddingLeft:38}}>Consultoria</div>
+      </div>
+      {eng&&(
+        <div className="sb-eng">
+          <div className="sb-eng-label">Engajamento atual</div>
+          <div className="sb-eng-name">{eng.empresa||'—'}</div>
+          <div className="sb-eng-cnpj">{eng.cnpj||'—'}</div>
+          {eng.periodo_inicio&&<div className="sb-eng-period">📅 {eng.periodo_inicio?.slice(0,7)} a {eng.periodo_fim?.slice(0,7)}</div>}
+        </div>
+      )}
+      {sections.map(sec=>(
+        <div key={sec.label} className="sb-section">
+          <div className="sb-section-label">{sec.label}</div>
+          {sec.items.map(it=>(
+            <button key={it.id} className={`sb-item ${cur===it.id?'on':''}`} onClick={()=>go(it.id)}>
+              <it.Ic size={13} stroke={cur===it.id?2.2:1.7}/>
+              <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{it.lbl}</span>
+              {it.badge>0&&<span className={`sb-badge ${it.badgeType||''}`}>{it.badge}</span>}
+            </button>
+          ))}
+        </div>
+      ))}
+      <div className="sb-bottom">
+        <div className="sb-user" onClick={logout}>
+          <div className="sb-av">{user?.name?.[0]||'U'}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,.75)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.name}</div>
+            <div style={{fontSize:10,color:'rgba(255,255,255,.3)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.company||user?.email}</div>
+          </div>
+          <I.logout size={12} style={{color:'rgba(255,255,255,.2)',flexShrink:0}}/>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+// OVERVIEW
+const Overview=({eng,go})=>{
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [running,setRunning]=useState(false);
+  useEffect(()=>{api.get('/api/audit/overview').then(setData).catch(console.error).finally(()=>setLoading(false));},[]);
+  const runAnalysis=async()=>{
+    setRunning(true);
+    try{await api.post('/api/audit/run',{});const d=await api.get('/api/audit/overview');setData(d);}
+    catch(e){alert('Erro: '+e.message);}finally{setRunning(false);}
+  };
+  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
+  if(!data) return null;
+  const maxFrag=Math.max(...(data.fragilidades||[]).map(f=>f.valor));
+  const nivelColor={critico:'var(--rk)',alto:'var(--wn)',medio:'#E5A200',baixo:'var(--ok)'};
+  const nivelBadge={critico:'brk',alto:'bwn',medio:'bwn',baixo:'bok'};
+  return(
+    <div className="content fup">
+      <div className="ph">
+        <div>
+          <div className="pt">Visão geral da auditoria</div>
+          <div className="ps">Análise executada em {new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})} · {data.total_lancamentos?.toLocaleString('pt-BR')} lançamentos, {BRLk(data.volume_total)} em volume</div>
+        </div>
+        <button className="btn pr" onClick={runAnalysis} disabled={running}>{running?<><Spin/>Analisando...</>:<><I.run size={13}/>Reexecutar análise</>}</button>
+      </div>
+
+      {/* Stats */}
+      <div className="stats-row">
+        <div className="stat">
+          <div className="stat-label">Score de confiança</div>
+          <div style={{display:'flex',alignItems:'center',gap:14,marginTop:8}}>
+            <ScoreRing score={data.score||78} size={84}/>
+            <div>
+              <div style={{fontSize:12,fontWeight:600,color:data.score>=80?'var(--ok)':data.score>=60?'var(--wn)':'var(--rk)',marginBottom:4}}>{data.score_label}</div>
+              <div style={{fontSize:11,color:'var(--ink3)',lineHeight:1.5}}>{data.score_detail}</div>
+            </div>
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Achados totais</div>
+          <div className="stat-value" style={{fontSize:48,color:'var(--ink)'}}>{data.achados_total}</div>
+          <div className="stat-sub">
+            <span className="stat-dot" style={{background:'var(--rk)'}}/>  {data.achados_critico} crítico &nbsp;
+            <span className="stat-dot" style={{background:'var(--wn)'}}/>  {data.achados_alto} alto &nbsp;
+            <span className="stat-dot" style={{background:'#E5A200'}}/>  {data.achados_medio} médio
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Exposição financeira</div>
+          <div className="stat-value" style={{fontSize:30}}>{BRLk(data.exposicao_financeira)}</div>
+          <div className="stat-sub"><span className="stat-dot" style={{background:'var(--rk)'}}/>  {data.exposicao_pct}% do volume auditado</div>
+        </div>
+        <div className="stat" style={{background:'var(--lime)',border:'1px solid rgba(0,0,0,.08)'}}>
+          <div className="stat-label" style={{color:'rgba(15,16,32,.5)'}}>IA achou</div>
+          <div className="stat-value" style={{color:'var(--lime-ink)',fontSize:18,marginTop:4}}>R$ 2,38M</div>
+          <div style={{fontSize:11,color:'rgba(15,16,32,.6)',marginTop:4}}>Distribuição disfarçada detectada</div>
+          <div style={{marginTop:8,fontSize:10,fontWeight:700,color:'var(--lime-ink)',letterSpacing:'-.01em'}}>{data.indicios_fraude} indícios de fraude ⚑</div>
+        </div>
+      </div>
+
+      {/* Main grid */}
+      <div className="g2" style={{marginBottom:16}}>
+        {/* Fragilidades */}
+        <div className="card">
+          <div className="ch">
+            <div className="ct">⚠ Fragilidades detectadas</div>
+            <div style={{fontSize:11,color:'var(--ink3)'}}>por tipo · ordenado por exposição</div>
+          </div>
+          <div style={{padding:'8px 0'}}>
+            {(data.fragilidades||[]).map(f=>(
+              <div key={f.id} style={{display:'flex',alignItems:'center',gap:12,padding:'8px 18px',borderBottom:'1px solid var(--bd2)'}}>
+                <div className="dot" style={{background:nivelColor[f.nivel],flexShrink:0}}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.titulo}</div>
+                </div>
+                <div style={{width:100,flexShrink:0}}>
+                  <div className="pbar"><div className="pbar-fill" style={{width:`${(f.valor/maxFrag)*100}%`,background:nivelColor[f.nivel]}}/></div>
+                </div>
+                <div style={{fontSize:12,fontWeight:600,fontVariantNumeric:'tabular-nums',minWidth:60,textAlign:'right'}}>{BRLk(f.valor)}</div>
+                <div style={{fontSize:11,color:'var(--ink3)',minWidth:40,textAlign:'right'}}>{f.casos} casos</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Indícios críticos */}
+        <div className="card">
+          <div className="ch">
+            <div className="ct">⚑ Indícios críticos</div>
+            <span className="badge brk" style={{fontSize:10}}>{data.indicios_criticos?.filter(a=>a.status==='aberto').length} ativos</span>
+          </div>
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
+            {(data.indicios_criticos||[]).map(a=>(
+              <div key={a.id} className="indicio-card" style={{borderLeftColor:nivelColor[a.nivel]}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                  <div style={{fontSize:10,fontFamily:'Geist Mono',fontWeight:600,color:'var(--ink4)'}}>{a.code}</div>
+                  <span className={`badge ${nivelBadge[a.nivel]}`}>{a.nivel==='critico'?'Crítico':a.nivel==='alto'?'Alto':'Médio'}</span>
+                </div>
+                <div style={{fontSize:12,fontWeight:600,marginBottom:3}}>{a.titulo}</div>
+                <div style={{fontSize:11,color:'var(--ink3)'}}>{a.descricao}</div>
+              </div>
+            ))}
+            <button className="btn sm gh" style={{marginTop:4,alignSelf:'flex-start'}} onClick={()=>go('achados')}>Ver todos os achados →</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom grid */}
+      <div className="g2">
+        {/* Benford */}
+        <div className="card">
+          <div className="ch">
+            <div className="ct">Lei de Benford · primeiro dígito</div>
+            <span className="badge bwn">Desvio &gt; 2σ no dígito 5</span>
+          </div>
+          <div className="cb">
+            <div style={{fontSize:11,color:'var(--ink3)',marginBottom:12}}>Distribuição observada vs. esperada ({data.total_lancamentos?.toLocaleString('pt-BR')} lançamentos)</div>
+            <BenfordChart data={data.benford}/>
+            <div style={{display:'flex',gap:14,marginTop:12,fontSize:11,color:'var(--ink3)'}}>
+              <div style={{display:'flex',alignItems:'center',gap:5}}><div style={{width:10,height:10,borderRadius:2,background:'var(--bd)'}}/> Esperado</div>
+              <div style={{display:'flex',alignItems:'center',gap:5}}><div style={{width:10,height:10,borderRadius:2,background:'var(--ok)',opacity:.85}}/> Observado</div>
+              <div style={{display:'flex',alignItems:'center',gap:5}}><div style={{width:10,height:10,borderRadius:2,background:'var(--rk)',opacity:.85}}/> Desvio anomalo</div>
+            </div>
+            <div style={{marginTop:14,padding:'10px 14px',background:'var(--wnb)',border:'1px solid var(--wnbd)',borderRadius:'var(--r)',fontSize:11,color:'var(--wn)',lineHeight:1.55}}>
+              <strong>Interpretação do agente:</strong> Excesso de valores iniciando com 5 (R$ 50k, R$ 500k...) pode indicar arredondamento artificial. Compatível com o achado F-001.
+            </div>
+          </div>
+        </div>
+
+        {/* Agent log */}
+        <div className="card">
+          <div className="ch">
+            <div className="ct">✦ Agente forense</div>
+            <button className="btn sm gh" onClick={()=>go('exec')}>Log da execução</button>
+          </div>
+          <div className="cb">
+            <div style={{display:'flex',flexDirection:'column',gap:0}}>
+              {(data.execution_logs||[]).map((l,i)=>(
+                <div key={i} className="log-line">
+                  <span className="log-ts">{l.ts}</span>
+                  <span className={`log-${l.tipo}`}>· {l.msg}</span>
+                </div>
+              ))}
+            </div>
+            <button className="btn pr" style={{marginTop:16,width:'100%',justifyContent:'center'}} onClick={()=>go('forense')}>
+              <I.forense size={13}/>Abrir assistente forense
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ACHADOS
+const Achados=()=>{
+  const [data,setData]=useState([]);
   const [filter,setFilter]=useState('todos');
-  const [total,setTotal]=useState(0);
   const [loading,setLoading]=useState(true);
-  useEffect(()=>{setLoading(true);const s=filter==='todos'?'':filter;api.get(`/api/transactions?period=2026-11&status=${s}`).then(d=>{setTxs(d.transactions||[]);setTotal(d.total||0);}).catch(console.error).finally(()=>setLoading(false));},[filter]);
-  const bm={ok:'bok',warn:'bwn',risk:'brk',pending:'bin'};
-  const lm={ok:'Conciliado',warn:'Divergencia',risk:'Risco',pending:'Pendente'};
-  return(<div className="page fup">
-    <div className="ph"><div><div className="pt">Lancamentos</div><div className="ps">Novembro 2026 - {total} transacoes</div></div></div>
-    <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
-      <div className="ftabs">{[{id:'todos',l:'Todos'},{id:'conciliados',l:'Conciliados'},{id:'divergentes',l:'Divergencias'},{id:'riscos',l:'Riscos'}].map(t=>(<button key={t.id} className={`ftab ${filter===t.id?'on':''}`} onClick={()=>setFilter(t.id)}>{t.l}</button>))}</div>
+  useEffect(()=>{api.get('/api/audit/achados').then(d=>setData(d.achados||[])).catch(console.error).finally(()=>setLoading(false));},[]);
+  const nivelColor={critico:'var(--rk)',alto:'var(--wn)',medio:'#E5A200',baixo:'var(--ok)'};
+  const nivelBadge={critico:'brk',alto:'bwn',medio:'bwn',baixo:'bok'};
+  const statusBadge={aberto:'brk',em_analise:'bwn',resolvido:'bok'};
+  const statusLabel={aberto:'Aberto',em_analise:'Em análise',resolvido:'Resolvido'};
+  const filtered=filter==='todos'?data:data.filter(a=>a.nivel===filter||a.status===filter);
+  return(
+    <div className="content fup">
+      <div className="ph">
+        <div><div className="pt">Achados</div><div className="ps">{data.length} achados identificados</div></div>
+      </div>
+      <div style={{display:'flex',gap:8,marginBottom:18,flexWrap:'wrap'}}>
+        {['todos','critico','alto','medio','aberto','em_analise'].map(f=>(
+          <button key={f} className={`btn sm ${filter===f?'pr':''}`} onClick={()=>setFilter(f)}>
+            {f==='todos'?'Todos':f==='em_analise'?'Em análise':f.charAt(0).toUpperCase()+f.slice(1)}
+          </button>
+        ))}
+      </div>
+      <div className="card" style={{overflowX:'auto'}}>
+        {loading?<div style={{padding:40,textAlign:'center'}}><Spin/></div>:(
+          <table className="tbl">
+            <thead><tr><th>Código</th><th>Achado</th><th>Tipo</th><th>Nível</th><th style={{textAlign:'right'}}>Valor</th><th>Casos</th><th>Status</th></tr></thead>
+            <tbody>
+              {filtered.map(a=>(
+                <tr key={a.id}>
+                  <td><span style={{fontFamily:'Geist Mono',fontSize:11,fontWeight:600,color:'var(--ink4)'}}>{a.code}</span></td>
+                  <td>
+                    <div style={{fontWeight:500,fontSize:12}}>{a.titulo}</div>
+                    <div style={{fontSize:11,color:'var(--ink3)',marginTop:2}}>{a.descricao}</div>
+                  </td>
+                  <td><span className="badge bgray">{a.tipo}</span></td>
+                  <td><span className={`badge ${nivelBadge[a.nivel]}`}><span className="dot" style={{background:nivelColor[a.nivel]}}/>{a.nivel}</span></td>
+                  <td style={{textAlign:'right',fontWeight:600,fontVariantNumeric:'tabular-nums'}}>{BRL(a.valor)}</td>
+                  <td style={{textAlign:'center',color:'var(--ink3)'}}>{a.casos}</td>
+                  <td><span className={`badge ${statusBadge[a.status]||'bgray'}`}>{statusLabel[a.status]||a.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
-    <div className="card" style={{overflowX:'auto'}}>
-      {loading?<div style={{padding:40,textAlign:'center'}}><Spin/></div>:(<table className="tbl">
-        <thead><tr><th>Favorecido</th><th>Descricao</th><th>Banco</th><th>Categoria</th><th>Data</th><th style={{textAlign:'right'}}>Valor</th><th>Status</th></tr></thead>
-        <tbody>{txs.map(t=>(<tr key={t.id}>
-          <td><div style={{fontWeight:500}}>{t.counterparty}</div>{t.cnpj&&<div style={{fontSize:11,color:'var(--ink3)',fontFamily:'DM Mono'}}>{t.cnpj}</div>}</td>
-          <td style={{color:'var(--ink3)',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.description}</td>
-          <td style={{fontSize:12,color:'var(--ink3)'}}>{t.account_id?.toUpperCase()}</td>
-          <td style={{fontSize:12,color:'var(--ink3)'}}>{t.category}</td>
-          <td className="mono" style={{color:'var(--ink3)',fontSize:12}}>{fdt(t.date)}</td>
-          <td className="mono" style={{textAlign:'right',fontWeight:600,color:t.amount>0?'var(--ok)':undefined}}>{t.amount>0?'+':''}{BRL(t.amount)}</td>
-          <td><span className={`badge ${bm[t.status]||'bin'}`}><span className={`dot ${t.status==='ok'?'dok':t.status==='warn'?'dwn':t.status==='risk'?'drk':'din'}`}/> {lm[t.status]||t.status}</span>{t.divergence&&<div style={{fontSize:11,color:'var(--wn)',marginTop:2}}>{t.divergence.substring(0,55)}...</div>}</td>
-        </tr>))}</tbody>
-      </table>)}
-    </div>
-  </div>);
+  );
 };
 
-const Alerts=()=>{
-  const [alerts,setAlerts]=useState([]);
-  const [exp,setExp]=useState(0);
+// MATRIZ
+const Matriz=()=>{
+  const [data,setData]=useState(null);
   const [loading,setLoading]=useState(true);
-  useEffect(()=>{api.get('/api/alerts?resolved=false').then(d=>{setAlerts(d.alerts||[]);setExp(d.risk_exposure||0);}).catch(console.error).finally(()=>setLoading(false));}, []);
-  const resolve=async id=>{await api.patch(`/api/alerts/${id}/resolve`,{resolution_note:'Resolvido'});setAlerts(p=>p.filter(a=>a.id!==id));};
-  const ignore=async id=>{await api.patch(`/api/alerts/${id}/ignore`);setAlerts(p=>p.filter(a=>a.id!==id));};
-  return(<div className="page fup">
-    <div className="ph"><div><div className="pt">Alertas de risco</div><div className="ps">{alerts.length} alertas ativos</div></div></div>
-    <div style={{background:'var(--rkb)',border:'1px solid var(--rkbd)',borderRadius:'var(--rl)',padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',gap:16}}>
-      <div style={{width:44,height:44,borderRadius:12,background:'#fff',border:'1px solid var(--rkbd)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--rk)',flexShrink:0}}><I.sh size={22}/></div>
-      <div><div style={{fontWeight:600,fontSize:15,color:'var(--rk)'}}>Exposicao potencial: {BRL(exp)}</div><div style={{fontSize:13,color:'var(--ink3)',marginTop:2}}>em {alerts.length} lancamentos sem lastro documental</div></div>
-    </div>
-    {loading?<div style={{textAlign:'center',padding:40}}><Spin/></div>:alerts.length===0?(<div style={{textAlign:'center',padding:60,color:'var(--ink3)'}}><div style={{fontSize:32,marginBottom:10}}>✅</div><div style={{fontSize:16,fontWeight:600,color:'var(--ink)'}}>Nenhum alerta ativo</div><div style={{fontSize:14,marginTop:4}}>Todos os lancamentos estao em conformidade</div></div>):(<div style={{display:'flex',flexDirection:'column',gap:12}}>{alerts.map(a=>(<div key={a.id} className="card fup" style={{borderLeft:`3px solid var(--${a.level==='risk'?'rk':'wn'})` }}>
-      <div style={{padding:'18px 20px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-          <span className={`badge ${a.level==='risk'?'brk':'bwn'}`}><span className={`dot ${a.level==='risk'?'drk':'dwn'}`}/> {a.level==='risk'?'Alto risco':'Atencao'}</span>
-          <span style={{fontSize:11,color:'var(--ink4)',marginLeft:'auto'}}>{new Date(a.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+  useEffect(()=>{api.get('/api/audit/matriz').then(setData).catch(console.error).finally(()=>setLoading(false));},[]);
+  const statusColor={conforme:'var(--ok)',parcial:'var(--wn)',nao_conforme:'var(--rk)'};
+  const statusLabel={conforme:'Conforme',parcial:'Parcial',nao_conforme:'Não conforme'};
+  const statusBadge={conforme:'bok',parcial:'bwn',nao_conforme:'brk'};
+  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
+  const cats=[...new Set((data?.matriz||[]).map(m=>m.categoria))];
+  return(
+    <div className="content fup">
+      <div className="ph">
+        <div><div className="pt">Matriz de conformidade</div><div className="ps">{data?.total} itens avaliados</div></div>
+      </div>
+      <div className="stats-row" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
+        {[{l:'Conformes',v:data?.conforme,c:'var(--ok)',badge:'bok'},{l:'Parciais',v:data?.parcial,c:'var(--wn)',badge:'bwn'},{l:'Não conformes',v:data?.nao_conforme,c:'var(--rk)',badge:'brk'}].map(s=>(
+          <div key={s.l} className="stat"><div className="stat-label">{s.l}</div><div className="stat-value" style={{color:s.c}}>{s.v}</div></div>
+        ))}
+      </div>
+      {cats.map(cat=>(
+        <div key={cat} className="card" style={{marginBottom:16}}>
+          <div className="ch"><div className="ct">{cat}</div></div>
+          <table className="tbl">
+            <thead><tr><th>Item</th><th>Status</th><th>Achados</th><th>Risco</th></tr></thead>
+            <tbody>
+              {(data?.matriz||[]).filter(m=>m.categoria===cat).map(m=>(
+                <tr key={m.id}>
+                  <td style={{fontWeight:500}}>{m.item}</td>
+                  <td><span className={`badge ${statusBadge[m.status]}`}><span className="dot" style={{background:statusColor[m.status]}}/>{statusLabel[m.status]}</span></td>
+                  <td style={{textAlign:'center',color:m.achados>0?'var(--rk)':'var(--ink3)',fontWeight:m.achados>0?600:400}}>{m.achados>0?m.achados:'—'}</td>
+                  <td><span className={`badge ${m.risco==='critico'?'brk':m.risco==='alto'?'bwn':m.risco==='medio'?'bwn':'bok'}`}>{m.risco}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div style={{fontSize:15,fontWeight:600,marginBottom:4}}>{a.title}</div>
-        <div style={{fontSize:13,color:'var(--ink2)',marginBottom:12}}>{a.subtitle}</div>
-        <div style={{fontSize:13,color:'var(--ink2)',padding:'10px 14px',background:'var(--sf2)',borderRadius:8,lineHeight:1.6}}>{a.detail}</div>
-        <div style={{display:'flex',gap:8,marginTop:14}}>
-          <button className="btn sm gh" onClick={()=>ignore(a.id)}>Ignorar</button>
-          <button className="btn sm pr" style={{marginLeft:'auto'}} onClick={()=>resolve(a.id)}><I.ok size={13}/>Resolver</button>
+      ))}
+    </div>
+  );
+};
+
+// EXECUÇÃO
+const Exec=()=>{
+  const [logs,setLogs]=useState([]);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{api.get('/api/audit/execution').then(d=>setLogs(d.logs||[])).catch(console.error).finally(()=>setLoading(false));},[]);
+  const tipoColor={ok:'log-ok',warn:'log-warn',critico:'log-critico',info:'log-info'};
+  return(
+    <div className="content fup">
+      <div className="ph"><div><div className="pt">Execução do agente</div><div className="ps">Log detalhado da última análise</div></div></div>
+      <div className="card">
+        <div className="ch"><div className="ct">✦ Log da execução · {new Date().toLocaleDateString('pt-BR')}</div><span className="badge bok"><span className="dot dok"/>Concluído</span></div>
+        <div style={{padding:'12px 18px',fontFamily:'Geist Mono',fontSize:12,background:'#0D0D0F',borderRadius:'0 0 var(--rl) var(--rl)'}}>
+          {loading?<div style={{color:'#666',padding:20}}>Carregando...</div>:logs.map((l,i)=>(
+            <div key={i} style={{display:'flex',gap:14,padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
+              <span style={{color:'#555',flexShrink:0}}>{l.ts}</span>
+              <span style={{color:l.tipo==='critico'?'#ff6b6b':l.tipo==='warn'?'#f0a500':l.tipo==='ok'?'#6fcf97':'#888'}}>·</span>
+              <span style={{color:l.tipo==='critico'?'#ff6b6b':l.tipo==='warn'?'#f0a500':l.tipo==='ok'?'#6fcf97':'#aaa'}}>{l.msg}</span>
+            </div>
+          ))}
         </div>
       </div>
-    </div>))}
-    </div>)}
-  </div>);
+    </div>
+  );
 };
 
-const Upload=()=>{
+// FONTES (shared between extratos, uploads, notas, contratos, qsa)
+const Fontes=({screen})=>{
+  const [data,setData]=useState(null);
   const [docs,setDocs]=useState([]);
   const [uploading,setUploading]=useState(false);
   const [drag,setDrag]=useState(false);
   const ref=useRef();
-  useEffect(()=>{api.get('/api/upload').then(d=>setDocs(d.documents||[])).catch(console.error);},[]);
+  useEffect(()=>{
+    api.get('/api/audit/fontes').then(setData).catch(console.error);
+    api.get('/api/upload').then(d=>setDocs(d.documents||[])).catch(console.error);
+  },[]);
+  const titles={extratos:'Extratos bancários',uploads:'Uploads',notas:'Notas fiscais',contratos:'Contratos',qsa:'QSA / Receita'};
   const doUpload=async files=>{
     setUploading(true);const form=new FormData();Array.from(files).forEach(f=>form.append('files',f));
-    try{const res=await fetch(API+'/api/upload',{method:'POST',headers:{'Authorization':`Bearer ${api.token}`},body:form});const data=await res.json();if(!res.ok)throw new Error(data.error);const r=await api.get('/api/upload');setDocs(r.documents||[]);}
+    try{const res=await fetch(API+'/api/upload',{method:'POST',headers:{Authorization:`Bearer ${api.token}`},body:form});const d=await res.json();if(!res.ok)throw new Error(d.error);const r=await api.get('/api/upload');setDocs(r.documents||[]);}
     catch(e){alert('Erro: '+e.message);}finally{setUploading(false);}
   };
-  const sc={done:'var(--ok)',processing:'var(--in)',error:'var(--rk)',pending:'var(--ink3)'};
-  const sl={done:'Lido',processing:'Processando',error:'Erro',pending:'Na fila'};
-  return(<div className="page fup">
-    <div className="ph"><div><div className="pt">Documentos</div><div className="ps">Envie extratos, NF-e, comprovantes e contratos</div></div></div>
-    <div className="twocol">
-      <div>
-        <div className={`dz ${drag?'drag':''}`} onClick={()=>ref.current.click()} onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);doUpload(e.dataTransfer.files);}}>
-          <div style={{width:56,height:56,borderRadius:14,background:'var(--sf2)',border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}>{uploading?<Spin/>:<I.up size={24} style={{color:'var(--ink3)'}}/>}</div>
-          <div style={{fontSize:16,fontWeight:600}}>{uploading?'Enviando...':'Arraste arquivos aqui'}</div>
-          <div style={{fontSize:13,color:'var(--ink3)',marginTop:6}}>PDF, OFX, XML NF-e, CSV, imagens</div>
-          <button className="btn pr" style={{marginTop:20}} onClick={e=>{e.stopPropagation();ref.current.click();}}><I.pl size={14}/>Selecionar arquivos</button>
-          <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.jpeg,.png,.csv" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
+  return(
+    <div className="content fup">
+      <div className="ph"><div><div className="pt">{titles[screen]||'Fontes'}</div><div className="ps">Documentos indexados para análise</div></div></div>
+      <div className="g2">
+        <div>
+          <div className={`card ${drag?'drag':''}`} style={{marginBottom:16,cursor:'pointer'}}
+            onClick={()=>ref.current?.click()} onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);doUpload(e.dataTransfer.files);}}>
+            <div className="cb" style={{textAlign:'center',padding:'32px 20px'}}>
+              <div style={{width:48,height:48,borderRadius:12,background:'var(--sf2)',border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
+                {uploading?<Spin/>:<I.upload size={22} style={{color:'var(--ink3)'}}/>}
+              </div>
+              <div style={{fontWeight:600,fontSize:14}}>{uploading?'Enviando...':'Adicionar documentos'}</div>
+              <div style={{fontSize:11,color:'var(--ink3)',marginTop:4}}>OFX, XML NF-e, PDF de contratos, CSV</div>
+              <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.png,.csv" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
+            </div>
+          </div>
+          {data&&(
+            <div className="card">
+              <div className="ch"><div className="ct">Resumo das fontes</div></div>
+              {[
+                {ic:I.extrato,l:'Extratos bancários',v:`${data.extratos.total} arquivos`,s:data.extratos.bancos?.join(', ')},
+                {ic:I.nfe,l:'Notas fiscais',v:`${data.notas_fiscais.total} NF-e/NFS-e`,s:'SEFAZ indexado'},
+                {ic:I.contrato,l:'Contratos',v:`${data.contratos.total} contratos`,s:'PDF processados'},
+                {ic:I.qsa,l:'QSA / Receita',v:`${data.qsa.total} empresas`,s:'Cruzamento ativo'},
+              ].map(s=>(
+                <div key={s.l} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 16px',borderBottom:'1px solid var(--bd2)'}}>
+                  <div style={{width:32,height:32,borderRadius:8,background:'var(--sf2)',border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><s.ic size={15} style={{color:'var(--ink3)'}}/></div>
+                  <div style={{flex:1}}><div style={{fontWeight:500,fontSize:12}}>{s.l}</div><div style={{fontSize:11,color:'var(--ink3)'}}>{s.s}</div></div>
+                  <div style={{fontWeight:600,fontSize:12}}>{s.v}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="card" style={{marginTop:20}}>
-          <div className="ch"><div className="ct">Fontes conectadas</div></div>
-          {[{l:'Extratos bancarios',s:'Itau, BB, Nubank - OFX',c:'var(--in)'},{l:'Notas fiscais',s:'NF-e XML - SEFAZ',c:'var(--ok)'}].map(src=>(<div key={src.l} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:'1px solid var(--bd2)'}}><div style={{width:34,height:34,borderRadius:9,background:src.c+'15',color:src.c,display:'flex',alignItems:'center',justifyContent:'center'}}><I.up size={16}/></div><div style={{flex:1}}><div style={{fontWeight:500,fontSize:13}}>{src.l}</div><div style={{fontSize:11,color:'var(--ink3)'}}>{src.s}</div></div><span className="badge bok"><span className="dot dok"/>Ativo</span></div>))}
+        <div className="card">
+          <div className="ch"><div className="ct">Arquivos ({docs.length})</div></div>
+          <div style={{overflowY:'auto',maxHeight:500}}>
+            {docs.length===0?<div style={{padding:40,textAlign:'center',color:'var(--ink3)'}}>Nenhum arquivo ainda</div>:
+            docs.map(d=>(
+              <div key={d.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderBottom:'1px solid var(--bd2)'}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:500,fontSize:12,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.filename}</div>
+                  <div style={{fontSize:10,color:'var(--ink3)',fontFamily:'Geist Mono',marginTop:2}}>{(d.size/1024).toFixed(0)} KB · {d.type}</div>
+                </div>
+                <span className={`badge ${d.status==='done'?'bok':d.status==='error'?'brk':'bwn'}`}>{d.status==='done'?'Lido':d.status==='error'?'Erro':'Processando'}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="card">
-        <div className="ch"><div className="ct">Arquivos enviados ({docs.length})</div></div>
-        <div style={{overflowY:'auto',maxHeight:500}}>{docs.length===0?<div style={{padding:40,textAlign:'center',color:'var(--ink3)',fontSize:14}}>Nenhum arquivo enviado ainda</div>:docs.map(d=>(<div key={d.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:'1px solid var(--bd2)'}}><div style={{flex:1,minWidth:0}}><div style={{fontWeight:500,fontSize:13,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.filename}</div><div style={{fontSize:11,color:'var(--ink3)',marginTop:2}}>{(d.size/1024).toFixed(0)} KB - {d.type}</div>{d.status==='processing'&&<div className="prog" style={{marginTop:6}}><div className="progb" style={{width:'60%',background:'var(--in)'}}></div></div>}</div><span className="badge" style={{color:sc[d.status],borderColor:sc[d.status]+'44',background:sc[d.status]+'11',fontSize:11}}>{sl[d.status]}</span></div>))}</div>
       </div>
     </div>
-  </div>);
+  );
 };
 
-const Chat=()=>{
+// LAUDO
+const Laudo=()=>{
+  const [generating,setGenerating]=useState(false);
+  const [data,setData]=useState(null);
+  useEffect(()=>{api.get('/api/audit/overview').then(setData).catch(console.error);},[]);
+  const gen=async()=>{
+    setGenerating(true);
+    setTimeout(()=>{setGenerating(false);alert('Laudo gerado! Em um ambiente de produção, o PDF seria baixado automaticamente.');},3000);
+  };
+  const eng=data?.engagement;
+  return(
+    <div className="content fup">
+      <div className="ph">
+        <div><div className="pt">Laudo de auditoria</div><div className="ps">Documento formal de evidências e achados</div></div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn pr" onClick={gen} disabled={generating}>{generating?<><Spin/>Gerando...</>:<><I.dl size={13}/>Gerar laudo PDF</>}</button>
+        </div>
+      </div>
+      <div className="g2">
+        <div className="card">
+          <div className="ch"><div className="ct">Dados do engajamento</div><button className="btn sm gh"><I.edit size={12}/>Editar</button></div>
+          <div className="cb">
+            {[
+              {l:'Empresa auditada',v:eng?.empresa||'—'},
+              {l:'CNPJ',v:eng?.cnpj||'—'},
+              {l:'Engajamento',v:eng?.code||'—'},
+              {l:'Período',v:eng?`${eng.periodo_inicio} a ${eng.periodo_fim}`:'—'},
+              {l:'Score de confiança',v:`${data?.score||78}/100`},
+              {l:'Total de achados',v:`${data?.achados_total||0} (${data?.indicios_fraude||0} indícios de fraude)`},
+              {l:'Exposição financeira',v:BRL(data?.exposicao_financeira)},
+            ].map(r=>(
+              <div key={r.l} style={{display:'flex',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--bd2)',fontSize:12}}>
+                <span style={{color:'var(--ink3)'}}>{r.l}</span>
+                <span style={{fontWeight:500}}>{r.v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="ch"><div className="ct">Estrutura do laudo</div></div>
+          <div className="cb">
+            {[
+              {n:'1.',t:'Sumário executivo',s:'Visão geral e conclusões principais'},
+              {n:'2.',t:'Escopo e metodologia',s:'Fontes, período e técnicas utilizadas'},
+              {n:'3.',t:'Achados e evidências',s:`${data?.achados_total||0} achados detalhados com evidências`},
+              {n:'4.',t:'Análise estatística',s:'Lei de Benford, distribuições e padrões'},
+              {n:'5.',t:'Partes relacionadas',s:'Cruzamento QSA e conflitos de interesse'},
+              {n:'6.',t:'Matriz de conformidade',s:'Avaliação de controles internos'},
+              {n:'7.',t:'Recomendações',s:'Ações corretivas prioritárias'},
+              {n:'8.',t:'Anexos',s:'Planilhas, extratos e documentos de suporte'},
+            ].map(s=>(
+              <div key={s.n} style={{display:'flex',gap:12,padding:'9px 0',borderBottom:'1px solid var(--bd2)'}}>
+                <span style={{fontWeight:700,color:'var(--ink3)',fontSize:12,minWidth:24}}>{s.n}</span>
+                <div><div style={{fontWeight:500,fontSize:12}}>{s.t}</div><div style={{fontSize:11,color:'var(--ink3)',marginTop:2}}>{s.s}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// FORENSE (chat)
+const Forense=()=>{
   const [msgs,setMsgs]=useState([]);
   const [input,setInput]=useState('');
   const [sending,setSending]=useState(false);
   const ref=useRef();
-  useEffect(()=>{api.get('/api/chat').then(d=>setMsgs(d.messages||[])).catch(console.error);},[]);
-  useEffect(()=>{if(ref.current) ref.current.scrollTop=ref.current.scrollHeight;},[msgs]);
+  useEffect(()=>{ref.current&&(ref.current.scrollTop=ref.current.scrollHeight);},[msgs]);
   const send=async text=>{
     const m=text||input.trim();if(!m||sending)return;
     setInput('');setSending(true);
     setMsgs(p=>[...p,{id:Date.now(),role:'user',content:m}]);
-    try{const d=await api.post('/api/chat',{message:m});setMsgs(p=>[...p,d.message]);}
+    try{const d=await api.post('/api/audit/forense',{message:m});setMsgs(p=>[...p,d.message]);}
     catch(e){setMsgs(p=>[...p,{id:Date.now()+1,role:'assistant',content:'Erro: '+e.message}]);}
     finally{setSending(false);}
   };
-  const suggs=['Resumo do periodo','Quais sao os riscos?','Mostrar divergencias','Saldo das contas'];
-  return(<div className="chat-layout">
-    <div style={{padding:'18px 28px 0',borderBottom:'1px solid var(--bd)',background:'var(--sf)',flexShrink:0}}>
-      <div style={{display:'flex',alignItems:'center',gap:12,paddingBottom:14}}>
-        <div className="agav" style={{width:40,height:40,fontSize:12}}>AI</div>
-        <div><div style={{fontWeight:700,fontSize:15,letterSpacing:'-.03em'}}>Agente Contabil</div><div style={{fontSize:12,color:'var(--ok)',fontWeight:500,display:'flex',alignItems:'center',gap:5,marginTop:2}}><span className="dot dok" style={{width:5,height:5}}/>online</div></div>
-        <button className="btn sm gh" style={{marginLeft:'auto'}} onClick={async()=>{await api.del('/api/chat');setMsgs([]);}}><I.x size={13}/>Limpar</button>
-      </div>
-    </div>
-    <div ref={ref} className="chat-msgs">
-      {msgs.length===0&&(<div style={{textAlign:'center',padding:'50px 20px',color:'var(--ink3)'}}><div style={{fontSize:36,marginBottom:12}}>🤖</div><div style={{fontSize:16,fontWeight:600,color:'var(--ink)',marginBottom:6}}>Ola! Sou o Agente Contabil</div><div style={{fontSize:14,lineHeight:1.65}}>Posso ajudar com analise de transacoes, alertas de risco, saldos e relatorios.</div><div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginTop:24}}>{suggs.map(s=><button key={s} className="btn sm" onClick={()=>send(s)}>{s}</button>)}</div></div>)}
-      {msgs.map((m,i)=>(<div key={m.id||i} className="fup" style={{display:'flex',flexDirection:'column',alignItems:m.role==='user'?'flex-end':'flex-start',gap:6}}>
-        <div className={`mrow ${m.role==='user'?'me':''}`}>
-          {m.role==='assistant'&&<div className="agav" style={{width:28,height:28,fontSize:10,flexShrink:0}}>AI</div>}
-          <div className={`bubble ${m.role==='user'?'me':'ai'}`}>{m.content}</div>
-        </div>
-        {m.suggestions?.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:6,paddingLeft:38}}>{m.suggestions.map(s=><button key={s} className="btn sm" onClick={()=>send(s)}>{s}</button>)}</div>)}
-      </div>))}
-      {sending&&(<div className="mrow"><div className="agav" style={{width:28,height:28,fontSize:10}}>AI</div><div className="bubble ai" style={{display:'flex',gap:4,alignItems:'center',padding:'12px 14px'}}><span className="pulse"/><span className="pulse"/><span className="pulse"/></div></div>)}
-    </div>
-    <div className="cbar">
-      <input className="inp" style={{flex:1}} placeholder="Pergunte sobre transacoes, riscos, relatorios..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&send()} disabled={sending}/>
-      <button className="btn pr" onClick={()=>send()} disabled={!input.trim()||sending}><I.send size={14}/>Enviar</button>
-    </div>
-  </div>);
-};
-
-const Report=()=>{
-  const [rep,setRep]=useState(null);
-  const [loading,setLoading]=useState(true);
-  const [running,setRunning]=useState(false);
-  useEffect(()=>{api.get('/api/reports/summary?period=2026-11').then(setRep).catch(console.error).finally(()=>setLoading(false));},[]);
-  const run=async()=>{
-    setRunning(true);
-    try{const r=await api.post('/api/reconcile',{period:'2026-11'});alert(`OK: ${r.message}`);setRep(await api.get('/api/reports/summary?period=2026-11'));}
-    catch(e){alert('Erro: '+e.message);}finally{setRunning(false);}
-  };
-  return(<div className="page fup">
-    <div className="ph">
-      <div><div className="pt">Relatorio de fechamento</div><div className="ps">Novembro 2026</div></div>
-      <div style={{display:'flex',gap:8}}>
-        <button className="btn" disabled><I.dl size={14}/>Exportar PDF</button>
-        <button className="btn pr" onClick={run} disabled={running}>{running?<><Spin/>Processando...</>:<><I.ref size={14}/>Rodar conciliacao</>}</button>
-      </div>
-    </div>
-    {loading?<div style={{textAlign:'center',padding:60}}><Spin/></div>:rep&&(<>
-      <div style={{background:'var(--ink)',borderRadius:'var(--rl)',padding:'28px 32px',marginBottom:24,color:'#fff'}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:32}}>
-          {[{l:'Receitas',v:`+${BRL(rep.totalReceitas)}`,c:'#6fcf97'},{l:'Despesas',v:`-${BRL(rep.totalDespesas)}`,c:'#fff'},{l:'Resultado',v:`${rep.resultado>=0?'+':''}${BRL(rep.resultado)}`,c:rep.resultado>=0?'#6fcf97':'#ff6b6b',sub:`Margem ${rep.lucroMargin}%`}].map(s=>(<div key={s.l}><div style={{fontSize:11,textTransform:'uppercase',letterSpacing:'.08em',color:'rgba(255,255,255,.35)',fontWeight:600,marginBottom:8}}>{s.l}</div><div style={{fontSize:26,fontWeight:700,letterSpacing:'-.04em',color:s.c,fontVariantNumeric:'tabular-nums'}}>{s.v}</div>{s.sub&&<div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:4}}>{s.sub}</div>}</div>))}
-        </div>
-      </div>
-      <div className="twocol">
-        <div className="card">
-          <div className="ch"><div className="ct">Status da conciliacao</div></div>
-          <div className="cb" style={{display:'flex',flexDirection:'column',gap:16}}>
-            {[{l:'Conciliados',v:rep.transacoes?.ok,c:'var(--ok)',t:rep.transacoes?.total},{l:'Divergentes',v:rep.transacoes?.warn,c:'var(--wn)',t:rep.transacoes?.total},{l:'Riscos',v:rep.transacoes?.risk,c:'var(--rk)',t:rep.transacoes?.total}].map(r=>(<div key={r.l}><div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:13}}><span style={{fontWeight:500}}>{r.l}</span><span style={{color:'var(--ink3)',fontVariantNumeric:'tabular-nums'}}>{r.v||0} / {r.t||0}</span></div><div className="prog"><div className="progb" style={{width:`${((r.v||0)/(r.t||1))*100}%`,background:r.c}}/></div></div>))}
+  const suggs=['Resumo do engajamento','Detalhes do achado F-001','Análise de Benford','Qual a exposição financeira?'];
+  return(
+    <div className="chat-wrap">
+      <div style={{padding:'14px 24px 0',borderBottom:'1px solid var(--bd)',background:'var(--sf)',flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,paddingBottom:12}}>
+          <div className="agav" style={{width:36,height:36,fontSize:11,background:'var(--ink)'}}>AI</div>
+          <div>
+            <div style={{fontWeight:700,fontSize:14,letterSpacing:'-.02em'}}>Assistente Forense</div>
+            <div style={{fontSize:11,color:'var(--ok)',fontWeight:500,display:'flex',alignItems:'center',gap:5,marginTop:1}}><span className="dot dok" style={{width:5,height:5}}/>online · acesso a todos os achados</div>
           </div>
         </div>
-        <div className="card">
-          <div className="ch"><div className="ct">Por categoria</div></div>
-          <div style={{overflowY:'auto',maxHeight:260}}>{(rep.byCategory||[]).slice(0,8).map(c=>(<div key={c.name} style={{display:'flex',alignItems:'center',padding:'10px 16px',borderBottom:'1px solid var(--bd2)'}}><div style={{flex:1,fontWeight:500,fontSize:13}}>{c.name}</div><div style={{fontSize:11,color:'var(--ink3)',marginRight:14}}>{c.count} lanc.</div><div style={{fontVariantNumeric:'tabular-nums',fontSize:13,fontWeight:600,color:c.despesas>0?'var(--ink)':'var(--ok)'}}>{c.despesas>0?`-${BRL(c.despesas)}`: `+${BRL(c.receitas)}`}</div></div>))}</div>
-        </div>
       </div>
-    </>)}
-  </div>);
+      <div ref={ref} className="chat-msgs">
+        {msgs.length===0&&(
+          <div style={{textAlign:'center',padding:'48px 20px',color:'var(--ink3)'}}>
+            <div style={{fontSize:32,marginBottom:12}}>🔍</div>
+            <div style={{fontSize:15,fontWeight:600,color:'var(--ink)',marginBottom:6}}>Assistente Forense Contábil</div>
+            <div style={{fontSize:12,lineHeight:1.65}}>Tenho acesso a todos os achados, documentos e análises.<br/>Posso ajudar a investigar qualquer transação suspeita.</div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:7,justifyContent:'center',marginTop:20}}>
+              {suggs.map(s=><button key={s} className="btn sm" onClick={()=>send(s)}>{s}</button>)}
+            </div>
+          </div>
+        )}
+        {msgs.map((m,i)=>(
+          <div key={m.id||i} className="fup" style={{display:'flex',flexDirection:'column',alignItems:m.role==='user'?'flex-end':'flex-start',gap:6}}>
+            <div className={`mrow ${m.role==='user'?'me':''}`}>
+              {m.role==='assistant'&&<div className="agav" style={{width:26,height:26,fontSize:9,flexShrink:0}}>AI</div>}
+              <div className={`bubble ${m.role==='user'?'me':'ai'}`}>{m.content}</div>
+            </div>
+          </div>
+        ))}
+        {sending&&<div className="mrow"><div className="agav" style={{width:26,height:26,fontSize:9}}>AI</div><div className="bubble ai" style={{display:'flex',gap:4,alignItems:'center',padding:'10px 12px'}}><span className="pulse"/><span className="pulse"/><span className="pulse"/></div></div>}
+      </div>
+      <div className="chat-bar">
+        <input className="inp" style={{flex:1}} placeholder="Investigue um achado, CNPJ, valor ou padrão suspeito..."
+          value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&send()} disabled={sending}/>
+        <button className="btn pr" onClick={()=>send()} disabled={!input.trim()||sending}><I.send size={13}/>Enviar</button>
+      </div>
+    </div>
+  );
 };
 
+// APP
 const App=()=>{
   const [user,setUser]=useState(null);
-  const [screen,setScreen]=useState('dashboard');
-  const [na,setNa]=useState(0);
+  const [screen,setScreen]=useState('overview');
+  const [eng,setEng]=useState(null);
+  const [nAchados,setNAchados]=useState(0);
   const [checking,setChecking]=useState(!!localStorage.getItem('ct'));
+
   useEffect(()=>{
     if(!localStorage.getItem('ct')){setChecking(false);return;}
     api.get('/auth/me').then(setUser).catch(()=>{localStorage.removeItem('ct');api.token=null;}).finally(()=>setChecking(false));
   },[]);
-  useEffect(()=>{if(!user)return;api.get('/api/alerts?resolved=false').then(d=>setNa(d.alerts?.length||0)).catch(()=>{});},[user]);
+
+  useEffect(()=>{
+    if(!user) return;
+    api.get('/api/audit/engagement').then(setEng).catch(()=>{});
+    api.get('/api/audit/achados').then(d=>setNAchados(d.achados?.filter(a=>a.status!=='resolvido').length||0)).catch(()=>{});
+  },[user]);
+
   const logout=()=>{localStorage.removeItem('ct');api.token=null;setUser(null);};
+
+  const screenTitle={overview:'Visão geral',achados:'Achados',matriz:'Matriz de conformidade',exec:'Execução do agente',extratos:'Extratos',uploads:'Uploads',notas:'Notas fiscais',contratos:'Contratos',qsa:'QSA / Receita',laudo:'Laudo de auditoria',forense:'Assistente forense'};
+
+  const pages={
+    overview: <Overview eng={eng} go={setScreen}/>,
+    achados: <Achados/>,
+    matriz: <Matriz/>,
+    exec: <Exec/>,
+    extratos: <Fontes screen="extratos"/>,
+    uploads: <Fontes screen="uploads"/>,
+    notas: <Fontes screen="notas"/>,
+    contratos: <Fontes screen="contratos"/>,
+    qsa: <Fontes screen="qsa"/>,
+    laudo: <Laudo/>,
+    forense: <Forense/>,
+  };
+
   if(checking) return <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><Spin/></div>;
   if(!user) return <Login onLogin={setUser}/>;
-  const pages={dashboard:<Dashboard go={setScreen}/>,transactions:<Transactions/>,alerts:<Alerts/>,upload:<Upload/>,chat:<Chat/>,report:<Report/>};
-  return(<div className="layout">
-    <Sidebar cur={screen} go={setScreen} user={user} logout={logout} na={na}/>
-    <div className="main">
-      <MH cur={screen}/>
-      <div className="mscroll">{pages[screen]||pages.dashboard}</div>
-      <MTabs cur={screen} go={setScreen} na={na}/>
+
+  return(
+    <div className="layout">
+      <Sidebar cur={screen} go={setScreen} user={user} logout={logout} eng={eng} nAchados={nAchados}/>
+      <div className="main">
+        <div className="topbar">
+          <div className="tb-breadcrumb" style={{display:"flex",alignItems:"center",gap:8}}><LogoA size={20}/>
+            <span>Engajamento #{eng?.code||'—'}</span>
+            <span className="tb-bc-sep"><I.caret size={12}/></span>
+            <span className="tb-bc-cur">{screenTitle[screen]||screen}</span>
+          </div>
+          <div className="tb-search">
+            <div className="tb-search-inner">
+              <I.forense size={13} style={{color:'var(--ink4)',flexShrink:0}}/>
+              <input className="tb-search-inp" placeholder="Buscar lançamento, CNPJ, contrato..."/>
+              <span className="tb-search-kbd">⌘K</span>
+            </div>
+          </div>
+          <div className="tb-actions">
+            <button className="btn sm gh"><I.bell size={13}/></button>
+            <button className="btn sm" onClick={()=>setScreen('laudo')}><I.dl size={13}/>Exportar evidências</button>
+            <button className="btn sm pr" onClick={()=>setScreen('laudo')}><I.laudo size={13}/>Gerar laudo</button>
+          </div>
+        </div>
+        <div style={{flex:1,overflow:screen==='forense'?'hidden':'auto',display:'flex',flexDirection:'column'}}>
+          {screen==='forense'?<Forense/>:<div style={{overflowY:'auto',flex:1}}>{pages[screen]||pages.overview}</div>}
+        </div>
+      </div>
     </div>
-  </div>);
+  );
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
