@@ -337,7 +337,7 @@ body {
 
 /* ── LOGIN ───────────────────────────────────── */
 .login-pg { display: flex; width: 100%; height: 100dvh; overflow-y: auto; }
-.login-l { flex: 1; background: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 48px; }
+.login-l { flex: 1; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 48px; }
 .login-r { width: 460px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 48px 40px; background: var(--bg); }
 .lform { width: 100%; max-width: 340px; }
 .llbl { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 5px; display: block; }
@@ -375,6 +375,12 @@ body {
 }
 
 @media (max-width: 768px) {
+  /* Override inline grids in Overview */
+  [style*="gridTemplateColumns: '1.1fr"],
+  [style*="gridTemplateColumns: '1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
   .sidebar { display: none !important; }
   .topbar { display: none !important; }
   .m-header { display: flex !important; }
@@ -680,108 +686,171 @@ const Overview = ({ go }) => {
   };
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin /></div>;
   if (!data) return null;
-  const nc = { critico: 'var(--rk)', alto: 'var(--wn)', medio: '#E5A200', baixo: 'var(--ok)' };
+  const nc = { critico: '#DC2626', alto: '#D97706', medio: '#CA8A04', baixo: '#16A34A' };
   const maxF = Math.max(...(data.fragilidades || []).map(f => f.valor));
+
   return (
     <div className="page fup">
       <div className="ph">
         <div>
-          <div className="pt">Visão geral</div>
-          <div className="ps">{(data.total_lancamentos || 0).toLocaleString('pt-BR')} lançamentos · {BRLk(data.volume_total)} em volume</div>
+          <div className="pt">Visão geral da auditoria</div>
+          <div className="ps">Análise executada em {new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'})} às 14:42 · {(data.total_lancamentos || 0).toLocaleString('pt-BR')} lançamentos, {BRLk(data.volume_total)} em volume</div>
         </div>
-        <button className="btn pr" onClick={run} disabled={running}>{running ? <><Spin />Analisando...</> : <>{I.run(13)}Reexecutar</>}</button>
+        <button className="btn pr" onClick={run} disabled={running}>{running ? <><Spin />Analisando...</> : <>{I.run(13)}Reexecutar análise</>}</button>
       </div>
 
-      <div className="sg">
-        <div className="stat">
+      {/* Stats row — 4 cards */}
+      <div className="sg" style={{ marginBottom: 20 }}>
+        {/* Score */}
+        <div className="stat" style={{ gridColumn: 'span 1' }}>
           <div className="stat-lbl">Score de confiança</div>
-          <div className="score-wrap" style={{ marginTop: 8 }}>
-            <ScoreRing score={data.score || 78} size={80} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10 }}>
+            <ScoreRing score={data.score || 78} size={76} />
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--wn)', marginBottom: 4 }}>{data.score_label}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--wn)', marginBottom: 5, lineHeight: 1.3 }}>{data.score_label}</div>
               <div style={{ fontSize: 11, color: 'var(--ink3)', lineHeight: 1.5 }}>{data.score_detail}</div>
             </div>
           </div>
         </div>
+
+        {/* Achados */}
         <div className="stat">
           <div className="stat-lbl">Achados totais</div>
-          <div className="stat-val" style={{ fontSize: 44, color: 'var(--ink)' }}>{data.achados_total}</div>
-          <div className="stat-sub">
-            <span className="dot drk" style={{ marginRight: 4 }} />{data.achados_critico} crítico &nbsp;
-            <span className="dot dwn" style={{ marginRight: 4 }} />{data.achados_alto} alto &nbsp;
-            <span className="dot" style={{ background: '#E5A200', marginRight: 4 }} />{data.achados_medio} médio
+          <div className="stat-val" style={{ fontSize: 52, marginTop: 8, letterSpacing: '-.06em' }}>{data.achados_total}</div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--ink3)' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#DC2626', display: 'inline-block' }} />
+              {data.achados_critico} crítico
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--ink3)' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#D97706', display: 'inline-block' }} />
+              {data.achados_alto} alto
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--ink3)' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#CA8A04', display: 'inline-block' }} />
+              {data.achados_medio} médio
+            </span>
           </div>
         </div>
-        <div className="stat lime-stat">
-          <div className="stat-lbl" style={{ color: 'rgba(15,16,32,.5)' }}>IA achou</div>
-          <div className="stat-val" style={{ fontSize: 20, color: 'var(--ink)', marginTop: 8 }}>{BRLk(data.exposicao_financeira)}</div>
-          <div style={{ fontSize: 11, color: 'rgba(15,16,32,.6)', marginTop: 4 }}>Distribuição disfarçada</div>
-          <div style={{ marginTop: 6, fontSize: 10, fontWeight: 700, color: 'var(--ink)' }}>{data.indicios_fraude} indícios de fraude ⚑</div>
-        </div>
+
+        {/* Exposição */}
         <div className="stat">
           <div className="stat-lbl">Exposição financeira</div>
-          <div className="stat-val" style={{ fontSize: 22 }}>{BRLk(data.exposicao_financeira)}</div>
-          <div className="stat-sub"><span className="dot drk" style={{ marginRight: 4 }} />{data.exposicao_pct}% do volume auditado</div>
+          <div className="stat-val" style={{ fontSize: 30, marginTop: 8 }}>{BRLk(data.exposicao_financeira)}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: 'var(--ink3)' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#DC2626', display: 'inline-block' }} />
+            {data.exposicao_pct}% do volume auditado
+          </div>
+        </div>
+
+        {/* Indícios */}
+        <div className="stat">
+          <div className="stat-lbl">Indícios de fraude</div>
+          <div className="stat-val" style={{ fontSize: 52, marginTop: 8, letterSpacing: '-.06em', color: 'var(--rk)' }}>{data.indicios_fraude}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: 'var(--rk)' }}>
+            ⚑ Requer validação do controller
+          </div>
         </div>
       </div>
 
-      <div className="g2" style={{ marginBottom: 16 }}>
+      {/* Middle row: Fragilidades (wide) + Indícios críticos */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 16, marginBottom: 16 }}>
+        {/* Fragilidades */}
         <div className="card">
-          <div className="ch"><div className="ct">⚠ Fragilidades detectadas</div><span style={{ fontSize: 11, color: 'var(--ink3)' }}>por exposição</span></div>
+          <div className="ch">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14 }}>⚠</span>
+              <div className="ct">Fragilidades detectadas</div>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--ink3)' }}>por tipo · ordenado por exposição</div>
+          </div>
           <div>
-            {(data.fragilidades || []).map(f => (
-              <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', borderBottom: '1px solid var(--bd2)' }}>
-                <span className="dot" style={{ background: nc[f.nivel] }} />
-                <span style={{ flex: 1, fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.titulo}</span>
-                <div className="pbar" style={{ width: 80, flexShrink: 0 }}><div className="pbar-f" style={{ width: `${(f.valor / maxF) * 100}%`, background: nc[f.nivel] }} /></div>
-                <span className="mono" style={{ fontSize: 11, fontWeight: 600, minWidth: 52, textAlign: 'right' }}>{BRLk(f.valor)}</span>
+            {(data.fragilidades || []).map((f, idx) => (
+              <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 18px', borderBottom: idx < (data.fragilidades.length - 1) ? '1px solid var(--bd2)' : 'none' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: nc[f.nivel], flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f.titulo}</span>
+                <div style={{ width: 120, flexShrink: 0 }}>
+                  <div style={{ height: 5, background: 'var(--bd)', borderRadius: 100, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(f.valor / maxF) * 100}%`, background: nc[f.nivel], borderRadius: 100 }} />
+                  </div>
+                </div>
+                <span className="mono" style={{ fontSize: 12, fontWeight: 600, minWidth: 58, textAlign: 'right', flexShrink: 0 }}>{BRLk(f.valor)}</span>
+                <span style={{ fontSize: 11, color: 'var(--ink3)', minWidth: 44, textAlign: 'right', flexShrink: 0 }}>{f.casos} casos</span>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Indícios críticos */}
         <div className="card">
-          <div className="ch"><div className="ct">⚑ Indícios críticos</div><button className="btn sm gh" onClick={() => go('achados')}>Ver todos →</button></div>
-          <div className="cb" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="ch">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14 }}>⚑</span>
+              <div className="ct">Indícios críticos</div>
+            </div>
+            <span style={{ background: 'var(--rk-bg)', color: 'var(--rk)', border: '1px solid var(--rk-bd)', borderRadius: 100, fontSize: 10, fontWeight: 700, padding: '2px 8px' }}>
+              {(data.indicios_criticos || []).filter(a => a.status === 'aberto').length} ativos
+            </span>
+          </div>
+          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
             {(data.indicios_criticos || []).map(a => (
-              <div key={a.id} className="indicio" style={{ borderLeftColor: nc[a.nivel] }}>
-                <div style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--ink4)' }}>{a.code}</span>
-                  <span className={`badge ${a.nivel === 'critico' ? 'brk' : 'bwn'}`}>{a.nivel === 'critico' ? 'Crítico' : 'Alto'}</span>
+              <div key={a.id} style={{ borderLeft: `3px solid ${nc[a.nivel] || 'var(--rk)'}`, paddingLeft: 12, paddingTop: 8, paddingBottom: 8, paddingRight: 8, background: 'var(--sf2)', borderRadius: '0 6px 6px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600 }}>{a.code}</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 100, background: a.nivel === 'critico' ? 'var(--rk-bg)' : 'var(--wn-bg)', color: a.nivel === 'critico' ? 'var(--rk)' : 'var(--wn)', border: `1px solid ${a.nivel === 'critico' ? 'var(--rk-bd)' : 'var(--wn-bd)'}` }}>
+                    {a.nivel === 'critico' ? 'Crítico' : 'Alto'}
+                  </span>
                 </div>
-                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{a.titulo}</div>
-                <div style={{ fontSize: 11, color: 'var(--ink3)' }}>{a.descricao}</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3, lineHeight: 1.3 }}>{a.titulo}</div>
+                <div style={{ fontSize: 11, color: 'var(--ink3)', lineHeight: 1.4 }}>{a.descricao}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="g2">
+      {/* Bottom row: Benford + Agente forense */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* Benford */}
         <div className="card">
-          <div className="ch"><div className="ct">Lei de Benford · 1º dígito</div><span className="badge bwn">Desvio &gt; 2σ no dígito 5</span></div>
+          <div className="ch">
+            <div className="ct">Lei de Benford · primeiro dígito</div>
+            <span style={{ background: 'var(--wn-bg)', color: 'var(--wn)', border: '1px solid var(--wn-bd)', borderRadius: 100, fontSize: 10, fontWeight: 700, padding: '2px 8px' }}>Desvio &gt; 2σ no dígito 5</span>
+          </div>
           <div className="cb">
-            <div style={{ fontSize: 11, color: 'var(--ink3)', marginBottom: 12 }}>Distribuição observada vs. esperada</div>
+            <div style={{ fontSize: 11, color: 'var(--ink3)', marginBottom: 12 }}>Distribuição observada vs. esperada ({(data.total_lancamentos || 0).toLocaleString('pt-BR')} lançamentos)</div>
             <Benford data={data.benford} />
             <div style={{ display: 'flex', gap: 14, marginTop: 10, fontSize: 11, color: 'var(--ink3)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--bd)' }} /> Esperado</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--ok)', opacity: .8 }} /> Observado</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 8, borderRadius: 2, background: 'var(--rk)', opacity: .8 }} /> Anomalia</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 6, borderRadius: 2, background: 'var(--bd)' }} /> Esperado</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 6, borderRadius: 2, background: 'var(--ok)', opacity: .8 }} /> Observado</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 6, borderRadius: 2, background: 'var(--rk)', opacity: .8 }} /> Anomalia</div>
             </div>
-            <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--wn-bg)', border: '1px solid var(--wn-bd)', borderRadius: 'var(--r)', fontSize: 11, color: 'var(--wn)', lineHeight: 1.55 }}>
-              <strong>Interpretação:</strong> χ² = 18.4 → Excesso no dígito 5. Compatível com arredondamento artificial (F-001).
+            <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--wn-bg)', border: '1px solid var(--wn-bd)', borderRadius: 'var(--r)', fontSize: 11, color: 'var(--wn)', lineHeight: 1.6 }}>
+              <strong>Interpretação do agente:</strong> Excesso de valores iniciando com 5 (R$ 50k, R$ 500k...) pode indicar arredondamento artificial. Compatível com o achado F-001 (pagamentos a PJ de sócio em múltiplos de R$ 50k).
             </div>
           </div>
         </div>
+
+        {/* Agente forense */}
         <div className="card">
-          <div className="ch"><div className="ct">✦ Agente forense</div><button className="btn sm gh" onClick={() => go('exec')}>Log completo →</button></div>
-          <div className="cb">
+          <div className="ch">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13 }}>✦</span>
+              <div className="ct">Agente forense</div>
+            </div>
+            <button className="btn sm gh" style={{ fontSize: 11, color: 'var(--ink3)' }} onClick={() => go('exec')}>Log da execução</button>
+          </div>
+          <div style={{ padding: '14px 18px', background: '#0A0A0F', borderRadius: '0 0 var(--rl) var(--rl)', minHeight: 200 }}>
             {(data.execution_logs || []).map((l, i) => (
-              <div key={i} className="log-line">
-                <span className="l-ts">{l.ts}</span>
-                <span className={`l-${l.tipo}`}>· {l.msg}</span>
+              <div key={i} style={{ display: 'flex', gap: 12, padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,.04)', fontFamily: "'Geist Mono', monospace", fontSize: 11.5, lineHeight: 1.5 }}>
+                <span style={{ color: '#4a4a5a', flexShrink: 0 }}>{l.ts}</span>
+                <span style={{ color: l.tipo === 'critico' ? '#ff6b6b' : l.tipo === 'warn' ? '#f0a500' : l.tipo === 'ok' ? '#6fcf97' : '#666' }}>·</span>
+                <span style={{ color: l.tipo === 'critico' ? '#ff6b6b' : l.tipo === 'warn' ? '#f0a500' : l.tipo === 'ok' ? '#6fcf97' : '#888' }}>{l.msg}</span>
               </div>
             ))}
-            <button className="btn pr" style={{ width: '100%', justifyContent: 'center', marginTop: 16 }} onClick={() => go('forense')}>
+          </div>
+          <div style={{ padding: '12px 14px', borderTop: '1px solid var(--bd)' }}>
+            <button className="btn pr" style={{ width: '100%', justifyContent: 'center' }} onClick={() => go('forense')}>
               {I.forense(13)}Abrir assistente forense
             </button>
           </div>
