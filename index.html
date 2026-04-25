@@ -968,7 +968,7 @@ const App = () => {
         <div className="m-tabs">
           {mobileTabs.map(t=>(
             <button key={t.id} className={`m-tab ${screen===t.id?'on':''}`} onClick={()=>setScreen(t.id)}>
-              <t.Ic size={20} stroke={screen===t.id?2.2:1.6} style={{color:screen===t.id?'var(--primary)':'var(--ink3)'}}/>
+              {I[t.icon](18)}
               {t.lbl}
             </button>
           ))}
