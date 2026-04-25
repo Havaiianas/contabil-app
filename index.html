@@ -314,10 +314,10 @@ const Login = ({onLogin}) => {
 // SIDEBAR
 const Sidebar = ({screen,go,user,logout}) => {
   const items = [
-    {id:'dashboard',lbl:'Dashboard',icon:I.dash},
-    {id:'clientes',lbl:'Clientes',icon:I.clients},
-    {id:'engajamentos',lbl:'Engajamentos',icon:I.eng},
-    {id:'laudos',lbl:'Laudos',icon:I.laudo},
+    {id:'dashboard',lbl:'Dashboard',icon:'dash'},
+    {id:'clientes',lbl:'Clientes',icon:'clients'},
+    {id:'engajamentos',lbl:'Engajamentos',icon:'eng'},
+    {id:'laudos',lbl:'Laudos',icon:'laudo'},
   ];
   return (
     <nav className="sidebar">
@@ -333,7 +333,7 @@ const Sidebar = ({screen,go,user,logout}) => {
         <div className="sb-sec-lbl">Menu</div>
         {items.map(it=>(
           <button key={it.id} className={`sb-item ${screen===it.id||screen?.startsWith(it.id)?'on':''}`} onClick={()=>go(it.id)}>
-            <it.icon size={13}/><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{it.lbl}</span>
+            {I[it.icon](13)}<span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{it.lbl}</span>
           </button>
         ))}
       </div>
