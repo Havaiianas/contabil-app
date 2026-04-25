@@ -9,7 +9,6 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
-/* ── TOKENS ─────────────────────────────────── */
 :root {
   --bg: #FAF8F3;
   --sf: #FFFFFF;
@@ -21,7 +20,7 @@
   --ink3: #6B6E8A;
   --ink4: #9FA2BC;
   --primary: #4C4EF5;
-  --primary-dark: #3A3CE0;
+  --primary-d: #3A3CE0;
   --primary-bg: #EEEEFF;
   --lime: #E6FF4C;
   --ok: #16A34A;
@@ -34,638 +33,277 @@
   --rk-bg: #FEE2E2;
   --rk-bd: #FCA5A5;
   --sidebar: #0F1020;
-  --sidebar-w: 220px;
-  --topbar-h: 48px;
-  --mobile-tab-h: 60px;
   --r: 8px;
   --rl: 12px;
   --sh: 0 1px 3px rgba(15,16,32,.06), 0 3px 12px rgba(15,16,32,.04);
 }
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg);overflow:hidden;font-size:13px;}
+#root{width:100%;height:100dvh;}
 
-/* ── RESET ───────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 14px; }
-body {
-  font-family: 'Geist', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  color: var(--ink);
-  background: var(--bg);
-  overflow: hidden;
-  height: 100dvh;
-  width: 100%;
+/* LAYOUT */
+.app{display:flex;width:100%;height:100dvh;overflow:hidden;}
+.app-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;height:100dvh;}
+.page-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.page{padding:28px 32px;max-width:1280px;width:100%;}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;height:100dvh;background:var(--sidebar);display:flex;flex-direction:column;overflow-y:auto;}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;}
+.sb-brand{font-size:14px;font-weight:700;letter-spacing:-.03em;color:#fff;}
+.sb-brand span{color:var(--primary);}
+.sb-sub{font-size:9px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;margin-top:1px;}
+.sb-user-info{padding:10px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.05);}
+.sb-user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);}
+.sb-user-co{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;}
+.sb-section{padding:14px 12px 4px;}
+.sb-sec-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.18);padding:0 6px;margin-bottom:4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.45);transition:all .12s;border:none;background:transparent;width:100%;text-align:left;}
+.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8);}
+.sb-item.on{background:rgba(76,78,245,.2);color:#fff;border-left:2px solid var(--primary);padding-left:6px;}
+.sb-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.06);}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.4);border:none;background:transparent;width:100%;transition:all .12s;}
+.sb-logout:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);}
+
+/* TOPBAR */
+.topbar{height:48px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;padding:0 24px;flex-shrink:0;}
+.tb-title{font-size:14px;font-weight:600;letter-spacing:-.02em;}
+.tb-sub{font-size:11px;color:var(--ink3);margin-left:4px;}
+
+/* MOBILE */
+.m-header{display:none;align-items:center;gap:10px;padding:10px 16px;background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;height:52px;}
+.m-tabs{display:none;justify-content:space-around;align-items:center;padding:6px 0 env(safe-area-inset-bottom,8px);background:var(--sf);border-top:1px solid var(--bd);flex-shrink:0;min-height:58px;}
+.m-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 10px;font-size:9px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.04em;}
+.m-tab.on{color:var(--primary);}
+
+/* CARDS */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);}
+.ch{padding:13px 18px;border-bottom:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ct{font-size:13px;font-weight:600;}
+.cb{padding:18px;}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:18px;box-shadow:var(--sh);}
+.stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);}
+.stat-val{font-size:26px;font-weight:700;letter-spacing:-.04em;margin-top:6px;font-variant-numeric:tabular-nums;line-height:1;}
+.stat-sub{font-size:11px;color:var(--ink3);margin-top:5px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tbl{width:100%;border-collapse:collapse;min-width:500px;}
+.tbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);padding:9px 14px;text-align:left;border-bottom:1px solid var(--bd2);background:var(--sf2);white-space:nowrap;}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--bd2);font-size:12.5px;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--sf2);cursor:pointer;}
+.mono{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;border:1px solid;white-space:nowrap;}
+.bok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-bd);}
+.bwn{background:var(--wn-bg);color:var(--wn);border-color:var(--wn-bd);}
+.brk{background:var(--rk-bg);color:var(--rk);border-color:var(--rk-bd);}
+.bin{background:var(--primary-bg);color:var(--primary);border-color:rgba(76,78,245,.3);}
+.bgray{background:var(--sf2);color:var(--ink3);border-color:var(--bd);}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.dok{background:var(--ok);}.dwn{background:var(--wn);}.drk{background:var(--rk);}.din{background:var(--primary);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:var(--r);border:1px solid var(--bd);background:var(--sf);color:var(--ink);font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.btn:hover{background:var(--sf2);}
+.btn.pr{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn.pr:hover{background:var(--primary-d);}
+.btn.sm{padding:5px 12px;font-size:11px;}
+.btn.gh{background:transparent;border-color:transparent;}
+.btn.gh:hover{background:var(--sf2);}
+.btn.danger{background:var(--rk-bg);color:var(--rk);border-color:var(--rk-bd);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* INPUT */
+.inp{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--sf);font-size:13px;color:var(--ink);font-family:inherit;outline:none;transition:border .12s;}
+.inp:focus{border-color:var(--primary);}
+.inp-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.inp-lbl{font-size:11px;font-weight:600;color:var(--ink2);}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6E8A' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+.pt{font-size:22px;font-weight:700;letter-spacing:-.04em;line-height:1.1;}
+.ps{font-size:12px;color:var(--ink3);margin-top:3px;}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* PROGRESS */
+.pbar{height:6px;background:var(--bd);border-radius:100px;overflow:hidden;}
+.pbar-f{height:100%;border-radius:100px;transition:width .5s;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(15,16,32,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.modal{background:var(--sf);border-radius:var(--rl);box-shadow:0 8px 40px rgba(0,0,0,.2);width:100%;max-width:500px;max-height:90dvh;overflow-y:auto;}
+.modal-h{padding:18px 20px;border-bottom:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:15px;font-weight:700;}
+.modal-body{padding:20px;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--bd2);display:flex;justify-content:flex-end;gap:8px;}
+
+/* UPLOAD ZONE */
+.dz{border:2px dashed var(--bd);border-radius:var(--rl);padding:32px 24px;text-align:center;cursor:pointer;transition:all .15s;background:var(--sf);}
+.dz:hover,.dz.drag{border-color:var(--primary);background:var(--primary-bg);}
+
+/* LOGIN */
+.login-pg{display:flex;width:100%;height:100dvh;overflow-y:auto;}
+.login-l{flex:1;background:var(--sidebar);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 48px;}
+.login-r{width:460px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:48px 40px;background:var(--bg);}
+
+/* CONCILIACAO RESULT */
+.conc-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--bd2);cursor:pointer;transition:background .1s;}
+.conc-row:hover{background:var(--sf2);}
+.conc-row:last-child{border-bottom:none;}
+.conc-status-bar{width:4px;height:36px;border-radius:2px;flex-shrink:0;}
+
+/* SCORE RING */
+.score-wrap{display:flex;align-items:center;gap:16px;}
+
+/* SPINNER */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.spin{width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0;}
+.fup{animation:fup .22s ease both;}
+
+/* RESPONSIVE */
+@media(min-width:769px){.m-header{display:none!important;}.m-tabs{display:none!important;}}
+@media(max-width:768px){
+  .sidebar{display:none!important;}.topbar{display:none!important;}
+  .m-header{display:flex!important;}.m-tabs{display:flex!important;}
+  .page{padding:14px;}.sg{grid-template-columns:1fr 1fr;gap:10px;}
+  .stat{padding:14px;}.stat-val{font-size:20px!important;}
+  .g2,.g3{grid-template-columns:1fr!important;}
+  .login-l{display:none!important;}.login-r{width:100%!important;padding:32px 20px!important;}
 }
-#root { width: 100%; height: 100dvh; }
-
-/* ── LAYOUT ──────────────────────────────────── */
-.app {
-  display: flex;
-  width: 100%;
-  height: 100dvh;
-  overflow: hidden;
-}
-.app-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  height: 100dvh;
-}
-.page-scroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-.page {
-  padding: 28px 32px;
-  max-width: 1280px;
-  width: 100%;
-}
-
-/* ── SIDEBAR ─────────────────────────────────── */
-.sidebar {
-  width: var(--sidebar-w);
-  flex-shrink: 0;
-  height: 100dvh;
-  background: var(--sidebar);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-.sb-logo {
-  padding: 20px 16px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.sb-logo-text { font-size: 14px; font-weight: 700; letter-spacing: -.03em; color: #fff; }
-.sb-logo-ia { color: var(--primary); }
-.sb-logo-sub { font-size: 9px; color: rgba(255,255,255,.25); text-transform: uppercase; letter-spacing: .1em; margin-top: 1px; }
-.sb-eng {
-  padding: 12px 16px;
-  background: rgba(255,255,255,.03);
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.sb-eng-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.2); margin-bottom: 5px; }
-.sb-eng-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.85); line-height: 1.35; }
-.sb-eng-cnpj { font-size: 10px; color: rgba(255,255,255,.3); font-family: 'Geist Mono', monospace; margin-top: 2px; }
-.sb-section { padding: 14px 12px 4px; }
-.sb-sec-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.18); padding: 0 6px; margin-bottom: 4px; }
-.sb-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 8px;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: rgba(255,255,255,.45);
-  transition: all .12s;
-  border: none;
-  background: transparent;
-  width: 100%;
-  text-align: left;
-  position: relative;
-}
-.sb-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.8); }
-.sb-item.on {
-  background: rgba(76,78,245,.2);
-  color: #fff;
-  border-left: 2px solid var(--primary);
-  padding-left: 6px;
-}
-.sb-badge {
-  margin-left: auto;
-  font-size: 9px;
-  font-weight: 700;
-  background: var(--rk);
-  color: #fff;
-  padding: 1px 6px;
-  border-radius: 100px;
-}
-.sb-badge.ok { background: var(--primary); }
-.sb-bottom {
-  margin-top: auto;
-  padding: 12px 12px;
-  border-top: 1px solid rgba(255,255,255,.06);
-}
-.sb-user {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 8px;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: background .12s;
-}
-.sb-user:hover { background: rgba(255,255,255,.06); }
-.sb-av {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-/* ── TOPBAR ─────────────────────────────────── */
-.topbar {
-  height: var(--topbar-h);
-  background: var(--sf);
-  border-bottom: 1px solid var(--bd);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 24px;
-  flex-shrink: 0;
-}
-.tb-bc { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink3); }
-.tb-bc-cur { color: var(--ink); font-weight: 500; }
-.tb-search {
-  flex: 1;
-  max-width: 320px;
-  margin: 0 auto;
-}
-.tb-si {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--sf2);
-  border: 1px solid var(--bd);
-  border-radius: var(--r);
-  padding: 6px 12px;
-}
-.tb-inp { border: none; background: transparent; font-size: 12px; color: var(--ink); outline: none; width: 100%; font-family: inherit; }
-.tb-kbd { font-size: 10px; color: var(--ink4); background: var(--bd2); padding: 1px 5px; border-radius: 4px; font-family: 'Geist Mono', monospace; white-space: nowrap; }
-.tb-acts { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-
-/* ── MOBILE HEADER ───────────────────────────── */
-.m-header {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  background: var(--sf);
-  border-bottom: 1px solid var(--bd);
-  flex-shrink: 0;
-  height: 52px;
-}
-.m-header-title { font-size: 15px; font-weight: 600; letter-spacing: -.03em; flex: 1; }
-
-/* ── MOBILE TABS ─────────────────────────────── */
-.m-tabs {
-  display: none;
-  justify-content: space-around;
-  align-items: center;
-  padding: 6px 0 env(safe-area-inset-bottom, 8px);
-  background: var(--sf);
-  border-top: 1px solid var(--bd);
-  flex-shrink: 0;
-  min-height: var(--mobile-tab-h);
-}
-.m-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 4px 12px;
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--ink3);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  min-width: 48px;
-}
-.m-tab.on { color: var(--primary); }
-
-/* ── CARDS ───────────────────────────────────── */
-.card { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rl); overflow: hidden; box-shadow: var(--sh); }
-.ch { padding: 13px 18px; border-bottom: 1px solid var(--bd2); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.ct { font-size: 12.5px; font-weight: 600; }
-.cb { padding: 18px; }
-
-/* ── STATS ───────────────────────────────────── */
-.sg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
-.stat { background: var(--sf); border: 1px solid var(--bd); border-radius: var(--rl); padding: 18px; box-shadow: var(--sh); }
-.stat-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--ink3); }
-.stat-val { font-size: 28px; font-weight: 700; letter-spacing: -.04em; margin-top: 6px; line-height: 1; font-variant-numeric: tabular-nums; }
-.stat-sub { font-size: 11px; color: var(--ink3); margin-top: 5px; }
-
-/* ── TABLE ───────────────────────────────────── */
-.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.tbl { width: 100%; border-collapse: collapse; min-width: 500px; }
-.tbl th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink3); padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--bd2); background: var(--sf2); white-space: nowrap; }
-.tbl td { padding: 10px 14px; border-bottom: 1px solid var(--bd2); font-size: 12.5px; vertical-align: middle; }
-.tbl tr:last-child td { border-bottom: none; }
-.tbl tr:hover td { background: var(--sf2); }
-.mono { font-family: 'Geist Mono', monospace; font-variant-numeric: tabular-nums; }
-
-/* ── BADGES ─────────────────────────────────── */
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 600; border: 1px solid; white-space: nowrap; }
-.bok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-bd); }
-.bwn { background: var(--wn-bg); color: var(--wn); border-color: var(--wn-bd); }
-.brk { background: var(--rk-bg); color: var(--rk); border-color: var(--rk-bd); }
-.bin { background: var(--primary-bg); color: var(--primary); border-color: rgba(76,78,245,.3); }
-.bgray { background: var(--sf2); color: var(--ink3); border-color: var(--bd); }
-.dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
-.dok { background: var(--ok); }
-.dwn { background: var(--wn); }
-.drk { background: var(--rk); }
-.din { background: var(--primary); }
-
-/* ── BUTTONS ─────────────────────────────────── */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 14px; border-radius: var(--r); border: 1px solid var(--bd); background: var(--sf); color: var(--ink); font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .12s; white-space: nowrap; }
-.btn:hover { background: var(--sf2); }
-.btn.pr { background: var(--primary); color: #fff; border-color: var(--primary); }
-.btn.pr:hover { background: var(--primary-dark); }
-.btn.sm { padding: 5px 10px; font-size: 11px; }
-.btn.gh { background: transparent; border-color: transparent; padding: 7px 8px; }
-.btn.gh:hover { background: var(--sf2); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn.icon { padding: 7px; }
-
-/* ── INPUT ───────────────────────────────────── */
-.inp { width: 100%; padding: 9px 12px; border: 1px solid var(--bd); border-radius: var(--r); background: var(--sf); font-size: 13px; color: var(--ink); font-family: inherit; outline: none; transition: border .12s; }
-.inp:focus { border-color: var(--primary); }
-
-/* ── PAGE HEADER ────────────────────────────── */
-.ph { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
-.pt { font-size: 22px; font-weight: 700; letter-spacing: -.04em; line-height: 1.1; }
-.ps { font-size: 12px; color: var(--ink3); margin-top: 3px; }
-
-/* ── GRID ────────────────────────────────────── */
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-
-/* ── PROGRESS ────────────────────────────────── */
-.pbar { height: 5px; background: var(--bd); border-radius: 100px; overflow: hidden; }
-.pbar-f { height: 100%; border-radius: 100px; transition: width .5s; }
-
-/* ── CHAT ────────────────────────────────────── */
-.chat-wrap { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
-.chat-msgs { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
-.mrow { display: flex; gap: 9px; align-items: flex-start; }
-.mrow.me { flex-direction: row-reverse; }
-.bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.6; max-width: min(600px, 80vw); white-space: pre-wrap; }
-.bubble.ai { background: var(--sf); border: 1px solid var(--bd); border-bottom-left-radius: 3px; }
-.bubble.me { background: var(--primary); color: #fff; border-bottom-right-radius: 3px; }
-.agav { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
-.pulse { width: 4px; height: 4px; border-radius: 50%; background: var(--ink3); animation: pulse .9s ease-in-out infinite; }
-.pulse:nth-child(2) { animation-delay: .15s; }
-.pulse:nth-child(3) { animation-delay: .3s; }
-.chat-bar { padding: 12px 16px 14px; border-top: 1px solid var(--bd); background: var(--sf); display: flex; gap: 8px; flex-shrink: 0; }
-
-/* ── LOG ─────────────────────────────────────── */
-.log-line { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.04); display: flex; gap: 12px; font-family: 'Geist Mono', monospace; font-size: 11.5px; line-height: 1.5; }
-.l-ts { color: #444; flex-shrink: 0; }
-.l-ok { color: #6fcf97; }
-.l-warn { color: #f0a500; }
-.l-critico { color: #ff6b6b; font-weight: 600; }
-.l-info { color: #888; }
-
-/* ── LOGIN ───────────────────────────────────── */
-.login-pg { display: flex; width: 100%; height: 100dvh; overflow-y: auto; }
-.login-l { flex: 1; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 48px; }
-.login-r { width: 460px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 48px 40px; background: var(--bg); }
-.lform { width: 100%; max-width: 340px; }
-.llbl { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 5px; display: block; }
-.lerr { background: var(--rk-bg); border: 1px solid var(--rk-bd); border-radius: var(--r); padding: 9px 13px; font-size: 12px; color: var(--rk); margin-bottom: 12px; }
-
-/* ── SPINNER ─────────────────────────────────── */
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse { 0%,100% { transform: scale(1); opacity: .4; } 50% { transform: scale(1.5); opacity: 1; } }
-@keyframes fup { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.spin { width: 16px; height: 16px; border: 2px solid var(--bd); border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; flex-shrink: 0; }
-.fup { animation: fup .2s ease both; }
-
-/* ── INDICIO CARD ────────────────────────────── */
-.indicio { padding: 12px 14px; border-left: 3px solid; background: var(--sf); margin-bottom: 8px; border-radius: 0 var(--r) var(--r) 0; border-top: 1px solid var(--bd); border-right: 1px solid var(--bd); border-bottom: 1px solid var(--bd); }
-
-/* ── LIME ────────────────────────────────────── */
-.lime-stat { background: var(--lime); border: 1px solid rgba(0,0,0,.08); }
-.lime-tag { background: var(--lime); color: var(--ink); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; font-family: 'Geist Mono', monospace; }
-
-/* ── BENFORD ─────────────────────────────────── */
-.benford { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
-.bf-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; }
-.bf-bars { display: flex; align-items: flex-end; gap: 1px; height: 65px; }
-.bf-b { border-radius: 2px 2px 0 0; min-width: 7px; }
-.bf-lbl { font-size: 9px; }
-
-/* ── DROPZONE ────────────────────────────────── */
-.dz { border: 2px dashed var(--bd); border-radius: var(--rl); padding: 36px 24px; text-align: center; cursor: pointer; transition: all .15s; }
-.dz:hover, .dz.drag { border-color: var(--primary); background: var(--primary-bg); }
-
-/* ── RESPONSIVE ──────────────────────────────── */
-@media (min-width: 769px) {
-  .m-header { display: none !important; }
-  .m-tabs { display: none !important; }
-}
-
-@media (max-width: 768px) {
-  /* Override inline grids in Overview */
-  [style*="gridTemplateColumns: '1.1fr"],
-  [style*="gridTemplateColumns: '1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-
-  .sidebar { display: none !important; }
-  .topbar { display: none !important; }
-  .m-header { display: flex !important; }
-  .m-tabs { display: flex !important; }
-
-  .page { padding: 16px 14px; }
-  .sg { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat { padding: 14px 12px; }
-  .stat-val { font-size: 20px !important; }
-  .pt { font-size: 17px; }
-  .ps { font-size: 11px; }
-  .ph { margin-bottom: 14px; }
-  .ph .btn { font-size: 11px; padding: 6px 10px; }
-
-  .g2 { grid-template-columns: 1fr !important; }
-  .g3 { grid-template-columns: 1fr 1fr !important; }
-
-  .chat-msgs { padding: 14px; }
-  .chat-bar { padding: 10px 12px 12px; }
-  .bubble { max-width: 85vw; font-size: 12px; }
-
-  .login-l { display: none !important; }
-  .login-r { width: 100% !important; padding: 32px 20px !important; }
-
-  .tbl { min-width: 480px; }
-  .cb { padding: 14px; }
-  .ch { padding: 11px 14px; }
-  .card { border-radius: 10px; }
-
-  .benford { height: 60px; }
-  .bf-bars { height: 48px; }
-}
-
-@media (max-width: 480px) {
-  .sg { grid-template-columns: 1fr !important; }
-  .g3 { grid-template-columns: 1fr !important; }
-  .page { padding: 12px; }
-}
-
-/* ── SCORE SVG FIX ───────────────────────────── */
-.score-wrap { display: flex; align-items: center; gap: 14px; }
-@media (max-width: 400px) {
-  .score-wrap { flex-direction: column; align-items: flex-start; gap: 8px; }
-}
+@media(max-width:420px){.sg{grid-template-columns:1fr!important;}}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const API = 'https://187.127.251.194.nip.io';
-const { useState, useEffect, useRef } = React;
+const {useState,useEffect,useRef,useCallback} = React;
 
 const api = {
   token: localStorage.getItem('ct'),
   async r(m, p, b) {
-    const h = { 'Content-Type': 'application/json' };
+    const h = {'Content-Type':'application/json'};
     if (this.token) h['Authorization'] = `Bearer ${this.token}`;
-    const res = await fetch(API + p, { method: m, headers: h, body: b ? JSON.stringify(b) : undefined });
+    const res = await fetch(API + p, {method:m, headers:h, body:b?JSON.stringify(b):undefined});
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Erro');
     return d;
   },
   get: p => api.r('GET', p),
-  post: (p, b) => api.r('POST', p, b),
-  patch: (p, b) => api.r('PATCH', p, b),
-  put: (p, b) => api.r('PUT', p, b),
+  post: (p,b) => api.r('POST', p, b),
+  put: (p,b) => api.r('PUT', p, b),
   del: p => api.r('DELETE', p),
 };
 
-const BRL = n => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(n || 0);
-const BRLk = n => n >= 1000000 ? `R$ ${(n / 1000000).toFixed(1)}M` : n >= 1000 ? `R$ ${(n / 1000).toFixed(0)}k` : BRL(n);
-const Spin = () => <div className="spin" />;
+const BRL = n => new Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL',minimumFractionDigits:0}).format(n||0);
+const BRLk = n => n>=1000000?`R$ ${(n/1000000).toFixed(1)}M`:n>=1000?`R$ ${(n/1000).toFixed(0)}k`:BRL(n);
+const Spin = () => <div className="spin"/>;
 
-/* ── LOGO ──────────────────────────────────── */
-const LogoA = ({ size = 32, light = false }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ flexShrink: 0 }}>
-    <path d="M10 92 L50 8 L90 92" stroke={light ? '#fff' : '#0F1020'} strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
-    <line x1="26" y1="62" x2="74" y2="62" stroke="#4C4EF5" strokeWidth="9" strokeLinecap="round" />
-    <circle cx="74" cy="62" r="5.5" fill="#E6FF4C" />
+// Logo
+const LogoA = ({size=28, light=false}) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{flexShrink:0}}>
+    <path d="M10 92 L50 8 L90 92" stroke={light?'#fff':'#0F1020'} strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"/>
+    <line x1="26" y1="62" x2="74" y2="62" stroke="#4C4EF5" strokeWidth="9" strokeLinecap="round"/>
+    <circle cx="74" cy="62" r="5.5" fill="#E6FF4C"/>
   </svg>
 );
 
-const LogoFull = ({ light = false }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-    <LogoA size={28} light={light} />
-    <div style={{ lineHeight: 1.15 }}>
-      <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '-.03em', color: light ? '#fff' : 'var(--ink)' }}>
-        Agility <span style={{ color: '#4C4EF5' }}>Concil</span><span style={{ color: '#4C4EF5' }}>IA</span>
-      </div>
-    </div>
-  </div>
-);
-
-/* ── ICONS ─────────────────────────────────── */
-const Ico = ({ ch, size = 14, stroke = 1.7, style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, ...style }}>
-    {ch}
-  </svg>
+// Icons
+const Ico = ({ch, size=14, stroke=1.7, style}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,...style}}>{ch}</svg>
 );
 const I = {
-  overview: s => <Ico size={s} ch={<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>}/>,
-  achados: s => <Ico size={s} ch={<><path d="m10.29 3.86-8.47 14.64A2 2 0 0 0 3.54 21h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>}/>,
-  matriz: s => <Ico size={s} ch={<><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>}/>,
-  exec: s => <Ico size={s} ch={<><circle cx="12" cy="12" r="3"/><path d="M12 3v1M12 20v1M3 12h1M20 12h1M5.6 5.6l.7.7M17.7 17.7l.7.7M5.6 18.4l.7-.7M17.7 6.3l.7-.7"/></>}/>,
-  upload: s => <Ico size={s} ch={<><path d="M12 15V3m-5 5 5-5 5 5M20 21H4"/></>}/>,
-  nfe: s => <Ico size={s} ch={<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></>}/>,
-  laudo: s => <Ico size={s} ch={<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></>}/>,
-  forense: s => <Ico size={s} ch={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></>}/>,
-  logout: s => <Ico size={s} ch={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>}/>,
-  run: s => <Ico size={s} ch={<polygon points="5 3 19 12 5 21 5 3"/>}/>,
-  dl: s => <Ico size={s} ch={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>}/>,
-  send: s => <Ico size={s} ch={<><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>}/>,
-  ok: s => <Ico size={s} ch={<polyline points="20 6 9 17 4 12"/>}/>,
-  x: s => <Ico size={s} ch={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>}/>,
-  caret: s => <Ico size={s} ch={<polyline points="9 18 15 12 9 6"/>}/>,
-  bell: s => <Ico size={s} ch={<><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>}/>,
+  dash: s=><Ico size={s} ch={<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>}/>,
+  clients: s=><Ico size={s} ch={<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>}/>,
+  eng: s=><Ico size={s} ch={<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></>}/>,
+  upload: s=><Ico size={s} ch={<><path d="M12 15V3m-5 5 5-5 5 5M20 21H4"/></>}/>,
+  check: s=><Ico size={s} ch={<><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>}/>,
+  laudo: s=><Ico size={s} ch={<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></>}/>,
+  plus: s=><Ico size={s} ch={<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>}/>,
+  back: s=><Ico size={s} ch={<><polyline points="15 18 9 12 15 6"/></>}/>,
+  x: s=><Ico size={s} ch={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>}/>,
+  ok: s=><Ico size={s} ch={<polyline points="20 6 9 17 4 12"/>}/>,
+  run: s=><Ico size={s} ch={<polygon points="5 3 19 12 5 21 5 3"/>}/>,
+  dl: s=><Ico size={s} ch={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>}/>,
+  trash: s=><Ico size={s} ch={<><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></>}/>,
+  logout: s=><Ico size={s} ch={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>}/>,
+  warn: s=><Ico size={s} ch={<><path d="m10.29 3.86-8.47 14.64A2 2 0 0 0 3.54 21h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>}/>,
 };
 
-/* ── SCORE RING ────────────────────────────── */
-const ScoreRing = ({ score = 78, size = 88 }) => {
-  const stroke = 8, r = (size - stroke) / 2, c = 2 * Math.PI * r, dash = (score / 100) * c;
-  const color = score >= 80 ? 'var(--primary)' : score >= 60 ? 'var(--wn)' : 'var(--rk)';
+const ScoreRing = ({score=0, size=80}) => {
+  const stroke=8, r=(size-stroke)/2, c=2*Math.PI*r, dash=(score/100)*c;
+  const color = score>=80?'var(--ok)':score>=50?'var(--wn)':'var(--rk)';
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--bd)" strokeWidth={stroke} />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{flexShrink:0}}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bd)" strokeWidth={stroke}/>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
         strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
-        transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dasharray .6s' }} />
-      <text x={size / 2} y={size / 2 - 1} textAnchor="middle" dominantBaseline="central"
-        style={{ fontSize: size * .24, fontWeight: 700, fill: 'var(--ink)', fontFamily: 'Geist' }}>{score}</text>
-      <text x={size / 2} y={size / 2 + size * .17} textAnchor="middle" dominantBaseline="central"
-        style={{ fontSize: size * .09, fill: 'var(--ink3)', fontFamily: 'Geist', fontWeight: 500, letterSpacing: '0.04em' }}>SCORE</text>
+        transform={`rotate(-90 ${size/2} ${size/2})`} style={{transition:'stroke-dasharray .6s'}}/>
+      <text x={size/2} y={size/2-1} textAnchor="middle" dominantBaseline="central"
+        style={{fontSize:size*.24,fontWeight:700,fill:'var(--ink)',fontFamily:'Geist'}}>{score}</text>
+      <text x={size/2} y={size/2+size*.17} textAnchor="middle" dominantBaseline="central"
+        style={{fontSize:size*.09,fill:'var(--ink3)',fontFamily:'Geist',fontWeight:500}}>SCORE</text>
     </svg>
   );
 };
 
-/* ── BENFORD ───────────────────────────────── */
-const Benford = ({ data }) => {
-  if (!data?.length) return null;
-  const max = Math.max(...data.map(d => Math.max(d.esperado, d.observado)));
-  return (
-    <div className="benford">
-      {data.map(d => {
-        const hE = (d.esperado / max) * 58, hO = (d.observado / max) * 58;
-        const anomaly = d.observado > d.esperado * 1.3;
-        return (
-          <div key={d.digito} className="bf-col">
-            <div className="bf-bars">
-              <div className="bf-b" style={{ width: 8, height: hE, background: 'var(--bd)' }} />
-              <div className="bf-b" style={{ width: 8, height: hO, background: anomaly ? 'var(--rk)' : 'var(--ok)', opacity: .8 }} />
-            </div>
-            <div className="bf-lbl" style={{ color: anomaly ? 'var(--rk)' : 'var(--ink4)', fontWeight: anomaly ? 700 : 400 }}>{d.digito}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-/* ── SIDEBAR ───────────────────────────────── */
-const Sidebar = ({ cur, go, user, logout, eng, nAchados }) => {
-  const sections = [
-    {
-      label: 'Auditoria', items: [
-        { id: 'overview', lbl: 'Visão geral', icon: 13 },
-        { id: 'achados', lbl: 'Achados', icon: 'achados', badge: nAchados },
-        { id: 'matriz', lbl: 'Matriz', icon: 'matriz' },
-        { id: 'exec', lbl: 'Execução do agente', icon: 'exec' },
-      ]
-    },
-    {
-      label: 'Fontes', items: [
-        { id: 'extratos', lbl: 'Extratos', icon: 'overview', badge2: 3 },
-        { id: 'uploads', lbl: 'Uploads', icon: 'upload', badge2: 48 },
-        { id: 'notas', lbl: 'Notas fiscais', icon: 'nfe', badge2: 412 },
-        { id: 'contratos', lbl: 'Contratos', icon: 'laudo', badge2: 31 },
-        { id: 'qsa', lbl: 'QSA / Receita', icon: 'forense' },
-      ]
-    },
-    {
-      label: 'Entregáveis', items: [
-        { id: 'laudo', lbl: 'Laudo de auditoria', icon: 'laudo' },
-        { id: 'forense', lbl: 'Assistente forense', icon: 'forense' },
-      ]
-    },
-  ];
-  return (
-    <nav className="sidebar">
-      <div className="sb-logo">
-        <LogoA size={26} light />
-        <div>
-          <div className="sb-logo-text">Agility <span className="sb-logo-ia">ConcilIA</span></div>
-          <div className="sb-logo-sub">Consultoria</div>
-        </div>
-      </div>
-      {eng && (
-        <div className="sb-eng">
-          <div className="sb-eng-label">Engajamento atual</div>
-          <div className="sb-eng-name">{eng.empresa || '—'}</div>
-          <div className="sb-eng-cnpj">{eng.cnpj || '—'}</div>
-        </div>
-      )}
-      {sections.map(sec => (
-        <div key={sec.label} className="sb-section">
-          <div className="sb-sec-label">{sec.label}</div>
-          {sec.items.map(it => (
-            <button key={it.id} className={`sb-item ${cur === it.id ? 'on' : ''}`} onClick={() => go(it.id)}>
-              {I[it.icon] ? I[it.icon](13) : I.overview(13)}
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{it.lbl}</span>
-              {it.badge > 0 && <span className="sb-badge">{it.badge}</span>}
-              {it.badge2 > 0 && <span className="sb-badge ok">{it.badge2}</span>}
-            </button>
-          ))}
-        </div>
-      ))}
-      <div className="sb-bottom">
-        <div className="sb-user" onClick={logout}>
-          <div className="sb-av">{user?.name?.[0] || 'U'}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11.5, fontWeight: 500, color: 'rgba(255,255,255,.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.company || user?.email}</div>
-          </div>
-          {I.logout(12)}
-        </div>
-      </div>
-    </nav>
-  );
-};
-
-/* ── LOGIN ─────────────────────────────────── */
-const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('demo@contabil.app');
-  const [pass, setPass] = useState('demo123');
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
+// LOGIN
+const Login = ({onLogin}) => {
+  const [email,setEmail]=useState('demo@contabil.app');
+  const [pass,setPass]=useState('demo123');
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
   const submit = async () => {
-    setLoading(true); setErr('');
+    setLoading(true);setErr('');
     try {
-      const d = await api.post('/auth/login', { email, password: pass });
-      api.token = d.token; localStorage.setItem('ct', d.token); onLogin(d.user);
-    } catch (e) { setErr(e.message); } finally { setLoading(false); }
+      const d = await api.post('/auth/login',{email,password:pass});
+      api.token=d.token;localStorage.setItem('ct',d.token);onLogin(d.user);
+    } catch(e){setErr(e.message);}finally{setLoading(false);}
   };
   return (
     <div className="login-pg">
       <div className="login-l">
-        <div style={{ textAlign: 'center', maxWidth: 340, color: '#fff' }}>
-          <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'center' }}>
-            <LogoA size={72} light />
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-.05em', marginBottom: 6 }}>
-            Agility <span style={{ color: '#E6FF4C' }}>ConcilIA</span>
-          </div>
-          <div style={{ fontFamily: 'Instrument Serif', fontStyle: 'italic', fontSize: 18, color: 'rgba(255,255,255,.7)', marginBottom: 32 }}>
-            A inteligência que concilia.
-          </div>
-          {['Detecção de fraude com Lei de Benford', 'Cruzamento QSA e partes relacionadas', 'Matriz de conformidade automatizada', 'Laudo de auditoria com IA'].map(f => (
-            <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,.6)', fontSize: 13, marginBottom: 10, textAlign: 'left' }}>
-              <div style={{ width: 18, height: 18, borderRadius: 5, background: 'rgba(255,255,255,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{textAlign:'center',maxWidth:340,color:'#fff'}}>
+          <div style={{marginBottom:24,display:'flex',justifyContent:'center'}}><LogoA size={72} light/></div>
+          <div style={{fontSize:28,fontWeight:700,letterSpacing:'-.05em',marginBottom:6}}>Agility <span style={{color:'#E6FF4C'}}>ConcilIA</span></div>
+          <div style={{fontFamily:'Instrument Serif',fontStyle:'italic',fontSize:17,color:'rgba(255,255,255,.7)',marginBottom:32}}>A inteligência que concilia.</div>
+          {[
+            'Upload de extratos, NFs, contratos e comprovantes',
+            'Conciliação automática de 3 vias com IA',
+            'Dashboard por cliente e engajamento',
+            'Laudo de conformidade gerado automaticamente',
+          ].map(f=>(
+            <div key={f} style={{display:'flex',alignItems:'center',gap:10,color:'rgba(255,255,255,.6)',fontSize:12.5,marginBottom:10,textAlign:'left'}}>
+              <div style={{width:18,height:18,borderRadius:5,background:'rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                 {I.ok(11)}
-              </div>
-              {f}
+              </div>{f}
             </div>
           ))}
         </div>
       </div>
       <div className="login-r">
-        <div className="lform">
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-.04em' }}>Entrar</div>
-            <div style={{ fontSize: 13, color: 'var(--ink3)', marginTop: 4 }}>Acesse sua conta para continuar</div>
+        <div style={{width:'100%',maxWidth:340}}>
+          <div style={{marginBottom:28}}>
+            <div style={{fontSize:22,fontWeight:700,letterSpacing:'-.04em'}}>Entrar</div>
+            <div style={{fontSize:13,color:'var(--ink3)',marginTop:4}}>Acesse sua conta para continuar</div>
           </div>
-          {err && <div className="lerr">{err}</div>}
-          <div style={{ marginBottom: 12 }}>
-            <label className="llbl">Email</label>
-            <input className="inp" type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="seu@email.com" />
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <label className="llbl">Senha</label>
-            <input className="inp" type="password" value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="••••••••" />
-          </div>
-          <button className="btn pr" style={{ width: '100%', padding: '11px', fontSize: 13 }} onClick={submit} disabled={loading}>
-            {loading ? <><Spin />Entrando...</> : 'Entrar'}
-          </button>
-          <div style={{ marginTop: 14, padding: '10px 12px', background: 'var(--sf2)', border: '1px solid var(--bd)', borderRadius: 'var(--r)', fontSize: 12, color: 'var(--ink3)' }}>
-            <strong style={{ color: 'var(--ink)' }}>Demo:</strong> demo@contabil.app / demo123
+          {err&&<div style={{background:'var(--rk-bg)',border:'1px solid var(--rk-bd)',borderRadius:'var(--r)',padding:'9px 13px',fontSize:12,color:'var(--rk)',marginBottom:12}}>{err}</div>}
+          <div className="inp-group"><label className="inp-lbl">Email</label><input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="seu@email.com"/></div>
+          <div className="inp-group"><label className="inp-lbl">Senha</label><input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="••••••••"/></div>
+          <button className="btn pr" style={{width:'100%',padding:'11px',fontSize:13,marginTop:4}} onClick={submit} disabled={loading}>{loading?<><Spin/>Entrando...</>:'Entrar'}</button>
+          <div style={{marginTop:14,padding:'10px 12px',background:'var(--sf2)',border:'1px solid var(--bd)',borderRadius:'var(--r)',fontSize:12,color:'var(--ink3)'}}>
+            <strong style={{color:'var(--ink)'}}>Demo:</strong> demo@contabil.app / demo123
           </div>
         </div>
       </div>
@@ -673,227 +311,251 @@ const Login = ({ onLogin }) => {
   );
 };
 
-/* ── OVERVIEW ──────────────────────────────── */
-const Overview = ({ go }) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [running, setRunning] = useState(false);
-  useEffect(() => { api.get('/api/audit/overview').then(setData).catch(console.error).finally(() => setLoading(false)); }, []);
-  const run = async () => {
-    setRunning(true);
-    try { await api.post('/api/audit/run', {}); const d = await api.get('/api/audit/overview'); setData(d); }
-    catch (e) { alert('Erro: ' + e.message); } finally { setRunning(false); }
-  };
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin /></div>;
-  if (!data) return null;
-  const nc = { critico: '#DC2626', alto: '#D97706', medio: '#CA8A04', baixo: '#16A34A' };
-  const maxF = Math.max(...(data.fragilidades || []).map(f => f.valor));
+// SIDEBAR
+const Sidebar = ({screen,go,user,logout}) => {
+  const items = [
+    {id:'dashboard',lbl:'Dashboard',icon:I.dash},
+    {id:'clientes',lbl:'Clientes',icon:I.clients},
+    {id:'engajamentos',lbl:'Engajamentos',icon:I.eng},
+    {id:'laudos',lbl:'Laudos',icon:I.laudo},
+  ];
+  return (
+    <nav className="sidebar">
+      <div className="sb-logo">
+        <LogoA size={26} light/>
+        <div>
+          <div className="sb-brand">Agility <span>ConcilIA</span></div>
+          <div className="sb-sub">Contabilidade</div>
+        </div>
+      </div>
+      {user&&<div className="sb-user-info"><div className="sb-user-name">{user.name}</div><div className="sb-user-co">{user.company||user.email}</div></div>}
+      <div className="sb-section">
+        <div className="sb-sec-lbl">Menu</div>
+        {items.map(it=>(
+          <button key={it.id} className={`sb-item ${screen===it.id||screen?.startsWith(it.id)?'on':''}`} onClick={()=>go(it.id)}>
+            <it.icon size={13}/><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{it.lbl}</span>
+          </button>
+        ))}
+      </div>
+      <div className="sb-bottom">
+        <button className="sb-logout" onClick={logout}>{I.logout(13)}<span>Sair</span></button>
+      </div>
+    </nav>
+  );
+};
 
+// DASHBOARD
+const Dashboard = ({go}) => {
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{api.get('/api/dashboard').then(setData).catch(console.error).finally(()=>setLoading(false));},[]);
+  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
+  const s = data?.stats||{};
+  return (
+    <div className="page fup">
+      <div className="ph">
+        <div><div className="pt">Dashboard</div><div className="ps">Visão geral do escritório</div></div>
+        <button className="btn pr" onClick={()=>go('clientes:novo')}>{I.plus(13)}Novo cliente</button>
+      </div>
+      <div className="sg">
+        {[
+          {l:'Clientes ativos',v:s.total_clientes||0,sub:'empresas cadastradas'},
+          {l:'Engajamentos',v:s.total_engajamentos||0,sub:'períodos analisados'},
+          {l:'Volume auditado',v:BRLk(s.total_pago),sub:'total de pagamentos'},
+          {l:'Taxa de conformidade',v:`${s.pct_conforme||0}%`,sub:`${BRLk(s.total_conforme)} conformes`,c:s.pct_conforme>=80?'var(--ok)':s.pct_conforme>=50?'var(--wn)':'var(--rk)'},
+        ].map(st=>(
+          <div key={st.l} className="stat">
+            <div className="stat-lbl">{st.l}</div>
+            <div className="stat-val" style={{color:st.c||'var(--ink)'}}>{st.v}</div>
+            <div className="stat-sub">{st.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {data?.alertas?.length>0&&(
+        <div style={{background:'var(--rk-bg)',border:'1px solid var(--rk-bd)',borderRadius:'var(--rl)',padding:'14px 18px',marginBottom:20}}>
+          <div style={{fontWeight:600,fontSize:13,color:'var(--rk)',marginBottom:8}}>{I.warn(14)} {data.alertas.length} engajamento(s) com problemas</div>
+          {data.alertas.map((a,i)=>(
+            <div key={i} style={{fontSize:12,color:'var(--rk)',marginTop:4}}>• {a.cliente_nome} · {a.periodo} · Score {a.score} · {BRL(a.valor_problema)} em irregularidades</div>
+          ))}
+        </div>
+      )}
+
+      <div className="g2">
+        <div className="card">
+          <div className="ch"><div className="ct">Engajamentos recentes</div><button className="btn sm gh" onClick={()=>go('engajamentos')}>Ver todos →</button></div>
+          {!data?.recentes?.length?<div style={{padding:32,textAlign:'center',color:'var(--ink3)'}}>Nenhum engajamento ainda</div>:(
+            <div>
+              {data.recentes.map(e=>(
+                <div key={e.id} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 16px',borderBottom:'1px solid var(--bd2)',cursor:'pointer'}} onClick={()=>go(`engajamento:${e.id}`)}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:500,fontSize:12.5,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.cliente_nome}</div>
+                    <div style={{fontSize:11,color:'var(--ink3)',marginTop:2}}>{e.periodo}</div>
+                  </div>
+                  {e.score!==null&&<div style={{fontSize:12,fontWeight:700,color:e.score>=80?'var(--ok)':e.score>=50?'var(--wn)':'var(--rk)'}}>{e.score}/100</div>}
+                  <span className={`badge ${e.status==='conciliado'?'bok':e.status==='em_andamento'?'bin':'bgray'}`}>{e.status?.replace('_',' ')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card">
+          <div className="ch"><div className="ct">Meus clientes</div><button className="btn sm gh" onClick={()=>go('clientes')}>Ver todos →</button></div>
+          {!data?.recentes?.length?<div style={{padding:32,textAlign:'center',color:'var(--ink3)',fontSize:12}}>
+            <div style={{fontSize:24,marginBottom:8}}>🏢</div>
+            <div style={{fontWeight:600,marginBottom:4}}>Comece cadastrando um cliente</div>
+            <button className="btn pr sm" style={{marginTop:8}} onClick={()=>go('clientes:novo')}>{I.plus(12)}Novo cliente</button>
+          </div>:(
+            <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
+              {(data.recentes||[]).map((e,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--bd2)'}}>
+                  <div style={{width:32,height:32,borderRadius:8,background:'var(--primary-bg)',color:'var(--primary)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:11,flexShrink:0}}>
+                    {e.cliente_nome?.charAt(0)||'?'}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:500,fontSize:12,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.cliente_nome}</div>
+                    <div style={{fontSize:11,color:'var(--ink3)'}}>{e.periodo}</div>
+                  </div>
+                  {e.pct_conforme>0&&<div style={{fontSize:11,color:e.pct_conforme>=80?'var(--ok)':e.pct_conforme>=50?'var(--wn)':'var(--rk)',fontWeight:600}}>{e.pct_conforme}%</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// MODAL NOVO CLIENTE
+const ModalCliente = ({onClose,onSaved}) => {
+  const [form,setForm]=useState({nome:'',cnpj:'',email:'',telefone:'',segmento:'',responsavel:''});
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
+  const save = async () => {
+    if(!form.nome||!form.cnpj){setErr('Nome e CNPJ obrigatórios');return;}
+    setLoading(true);setErr('');
+    try{const c=await api.post('/api/clientes',form);onSaved(c);}
+    catch(e){setErr(e.message);}finally{setLoading(false);}
+  };
+  return (
+    <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-h"><div className="modal-title">Novo cliente</div><button className="btn gh sm" onClick={onClose}>{I.x(14)}</button></div>
+        <div className="modal-body">
+          {err&&<div style={{background:'var(--rk-bg)',border:'1px solid var(--rk-bd)',borderRadius:'var(--r)',padding:'8px 12px',fontSize:12,color:'var(--rk)',marginBottom:12}}>{err}</div>}
+          <div className="g2">
+            <div className="inp-group"><label className="inp-lbl">Razão social *</label><input className="inp" value={form.nome} onChange={e=>setForm({...form,nome:e.target.value})} placeholder="Empresa Ltda"/></div>
+            <div className="inp-group"><label className="inp-lbl">CNPJ *</label><input className="inp" value={form.cnpj} onChange={e=>setForm({...form,cnpj:e.target.value})} placeholder="00.000.000/0001-00"/></div>
+          </div>
+          <div className="g2">
+            <div className="inp-group"><label className="inp-lbl">Email</label><input className="inp" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="contato@empresa.com"/></div>
+            <div className="inp-group"><label className="inp-lbl">Telefone</label><input className="inp" value={form.telefone} onChange={e=>setForm({...form,telefone:e.target.value})} placeholder="(11) 9999-9999"/></div>
+          </div>
+          <div className="g2">
+            <div className="inp-group"><label className="inp-lbl">Segmento</label>
+              <select className="inp" value={form.segmento} onChange={e=>setForm({...form,segmento:e.target.value})}>
+                <option value="">Selecione...</option>
+                {['Indústria','Comércio','Serviços','Saúde','Tecnologia','Construção','Agronegócio','Outro'].map(s=><option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="inp-group"><label className="inp-lbl">Responsável</label><input className="inp" value={form.responsavel} onChange={e=>setForm({...form,responsavel:e.target.value})} placeholder="Nome do responsável"/></div>
+          </div>
+        </div>
+        <div className="modal-footer"><button className="btn" onClick={onClose}>Cancelar</button><button className="btn pr" onClick={save} disabled={loading}>{loading?<><Spin/>Salvando...</>:'Salvar cliente'}</button></div>
+      </div>
+    </div>
+  );
+};
+
+// CLIENTES
+const Clientes = ({go,forceNew}) => {
+  const [clientes,setClientes]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [showModal,setShowModal]=useState(forceNew||false);
+  useEffect(()=>{api.get('/api/clientes').then(d=>setClientes(d.clientes||[])).catch(console.error).finally(()=>setLoading(false));},[]);
+  return (
+    <div className="page fup">
+      <div className="ph">
+        <div><div className="pt">Clientes</div><div className="ps">{clientes.length} empresas cadastradas</div></div>
+        <button className="btn pr" onClick={()=>setShowModal(true)}>{I.plus(13)}Novo cliente</button>
+      </div>
+      {showModal&&<ModalCliente onClose={()=>setShowModal(false)} onSaved={c=>{setClientes(p=>[...p,c]);setShowModal(false);}}/>}
+      {loading?<div style={{textAlign:'center',padding:60}}><Spin/></div>:
+       clientes.length===0?<div style={{textAlign:'center',padding:60,color:'var(--ink3)'}}>
+         <div style={{fontSize:32,marginBottom:10}}>🏢</div>
+         <div style={{fontSize:15,fontWeight:600,color:'var(--ink)',marginBottom:6}}>Nenhum cliente cadastrado</div>
+         <div style={{fontSize:13,marginBottom:20}}>Cadastre seu primeiro cliente para começar</div>
+         <button className="btn pr" onClick={()=>setShowModal(true)}>{I.plus(13)}Novo cliente</button>
+       </div>:(
+        <div className="card">
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead><tr><th>Empresa</th><th>CNPJ</th><th>Segmento</th><th>Engajamentos</th><th>Último período</th><th></th></tr></thead>
+              <tbody>
+                {clientes.map(c=>(
+                  <tr key={c.id} onClick={()=>go(`cliente:${c.id}`)}>
+                    <td><div style={{fontWeight:500}}>{c.nome}</div><div style={{fontSize:11,color:'var(--ink3)'}}>{c.email}</div></td>
+                    <td className="mono" style={{fontSize:11,color:'var(--ink3)'}}>{c.cnpj}</td>
+                    <td><span className="badge bgray">{c.segmento||'—'}</span></td>
+                    <td style={{textAlign:'center'}}>{c.total_engajamentos||0}</td>
+                    <td style={{color:'var(--ink3)'}}>{c.ultimo_engajamento||'—'}</td>
+                    <td><button className="btn sm gh" onClick={e=>{e.stopPropagation();go(`cliente:${c.id}`);}}>Ver →</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// CLIENTE DETALHE
+const ClienteDetalhe = ({clienteId,go}) => {
+  const [cliente,setCliente]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [showEngModal,setShowEngModal]=useState(false);
+  useEffect(()=>{api.get(`/api/clientes/${clienteId}`).then(setCliente).catch(console.error).finally(()=>setLoading(false));},[clienteId]);
+  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
+  if(!cliente) return <div style={{padding:40,textAlign:'center',color:'var(--ink3)'}}>Cliente não encontrado</div>;
   return (
     <div className="page fup">
       <div className="ph">
         <div>
-          <div className="pt">Visão geral da auditoria</div>
-          <div className="ps">Análise executada em {new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'})} às 14:42 · {(data.total_lancamentos || 0).toLocaleString('pt-BR')} lançamentos, {BRLk(data.volume_total)} em volume</div>
+          <button className="btn sm gh" style={{marginBottom:8}} onClick={()=>go('clientes')}>{I.back(12)}Voltar</button>
+          <div className="pt">{cliente.nome}</div>
+          <div className="ps" style={{fontFamily:'Geist Mono',fontSize:11}}>{cliente.cnpj}</div>
         </div>
-        <button className="btn pr" onClick={run} disabled={running}>{running ? <><Spin />Analisando...</> : <>{I.run(13)}Reexecutar análise</>}</button>
+        <button className="btn pr" onClick={()=>setShowEngModal(true)}>{I.plus(13)}Novo engajamento</button>
       </div>
-
-      {/* Stats row — 4 cards */}
-      <div className="sg" style={{ marginBottom: 20 }}>
-        {/* Score */}
-        <div className="stat" style={{ gridColumn: 'span 1' }}>
-          <div className="stat-lbl">Score de confiança</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10 }}>
-            <ScoreRing score={data.score || 78} size={76} />
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--wn)', marginBottom: 5, lineHeight: 1.3 }}>{data.score_label}</div>
-              <div style={{ fontSize: 11, color: 'var(--ink3)', lineHeight: 1.5 }}>{data.score_detail}</div>
-            </div>
+      {showEngModal&&<ModalEngajamento clienteId={cliente.id} clienteNome={cliente.nome} onClose={()=>setShowEngModal(false)} onSaved={e=>{setCliente(p=>({...p,engajamentos:[...(p.engajamentos||[]),e]}));setShowEngModal(false);go(`engajamento:${e.id}`);}}/>}
+      <div className="g3" style={{marginBottom:20}}>
+        {[{l:'Email',v:cliente.email||'—'},{l:'Telefone',v:cliente.telefone||'—'},{l:'Segmento',v:cliente.segmento||'—'}].map(i=>(
+          <div key={i.l} className="card" style={{padding:'14px 16px'}}>
+            <div style={{fontSize:10,fontWeight:600,textTransform:'uppercase',letterSpacing:'.07em',color:'var(--ink3)',marginBottom:4}}>{i.l}</div>
+            <div style={{fontWeight:500,fontSize:13}}>{i.v}</div>
           </div>
-        </div>
-
-        {/* Achados */}
-        <div className="stat">
-          <div className="stat-lbl">Achados totais</div>
-          <div className="stat-val" style={{ fontSize: 52, marginTop: 8, letterSpacing: '-.06em' }}>{data.achados_total}</div>
-          <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--ink3)' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#DC2626', display: 'inline-block' }} />
-              {data.achados_critico} crítico
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--ink3)' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#D97706', display: 'inline-block' }} />
-              {data.achados_alto} alto
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--ink3)' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#CA8A04', display: 'inline-block' }} />
-              {data.achados_medio} médio
-            </span>
-          </div>
-        </div>
-
-        {/* Exposição */}
-        <div className="stat">
-          <div className="stat-lbl">Exposição financeira</div>
-          <div className="stat-val" style={{ fontSize: 30, marginTop: 8 }}>{BRLk(data.exposicao_financeira)}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: 'var(--ink3)' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#DC2626', display: 'inline-block' }} />
-            {data.exposicao_pct}% do volume auditado
-          </div>
-        </div>
-
-        {/* Indícios */}
-        <div className="stat">
-          <div className="stat-lbl">Indícios de fraude</div>
-          <div className="stat-val" style={{ fontSize: 52, marginTop: 8, letterSpacing: '-.06em', color: 'var(--rk)' }}>{data.indicios_fraude}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: 'var(--rk)' }}>
-            ⚑ Requer validação do controller
-          </div>
-        </div>
-      </div>
-
-      {/* Middle row: Fragilidades (wide) + Indícios críticos */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 16, marginBottom: 16 }}>
-        {/* Fragilidades */}
-        <div className="card">
-          <div className="ch">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>⚠</span>
-              <div className="ct">Fragilidades detectadas</div>
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--ink3)' }}>por tipo · ordenado por exposição</div>
-          </div>
-          <div>
-            {(data.fragilidades || []).map((f, idx) => (
-              <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 18px', borderBottom: idx < (data.fragilidades.length - 1) ? '1px solid var(--bd2)' : 'none' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: nc[f.nivel], flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f.titulo}</span>
-                <div style={{ width: 120, flexShrink: 0 }}>
-                  <div style={{ height: 5, background: 'var(--bd)', borderRadius: 100, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(f.valor / maxF) * 100}%`, background: nc[f.nivel], borderRadius: 100 }} />
-                  </div>
-                </div>
-                <span className="mono" style={{ fontSize: 12, fontWeight: 600, minWidth: 58, textAlign: 'right', flexShrink: 0 }}>{BRLk(f.valor)}</span>
-                <span style={{ fontSize: 11, color: 'var(--ink3)', minWidth: 44, textAlign: 'right', flexShrink: 0 }}>{f.casos} casos</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Indícios críticos */}
-        <div className="card">
-          <div className="ch">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>⚑</span>
-              <div className="ct">Indícios críticos</div>
-            </div>
-            <span style={{ background: 'var(--rk-bg)', color: 'var(--rk)', border: '1px solid var(--rk-bd)', borderRadius: 100, fontSize: 10, fontWeight: 700, padding: '2px 8px' }}>
-              {(data.indicios_criticos || []).filter(a => a.status === 'aberto').length} ativos
-            </span>
-          </div>
-          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {(data.indicios_criticos || []).map(a => (
-              <div key={a.id} style={{ borderLeft: `3px solid ${nc[a.nivel] || 'var(--rk)'}`, paddingLeft: 12, paddingTop: 8, paddingBottom: 8, paddingRight: 8, background: 'var(--sf2)', borderRadius: '0 6px 6px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600 }}>{a.code}</span>
-                  <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 100, background: a.nivel === 'critico' ? 'var(--rk-bg)' : 'var(--wn-bg)', color: a.nivel === 'critico' ? 'var(--rk)' : 'var(--wn)', border: `1px solid ${a.nivel === 'critico' ? 'var(--rk-bd)' : 'var(--wn-bd)'}` }}>
-                    {a.nivel === 'critico' ? 'Crítico' : 'Alto'}
-                  </span>
-                </div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3, lineHeight: 1.3 }}>{a.titulo}</div>
-                <div style={{ fontSize: 11, color: 'var(--ink3)', lineHeight: 1.4 }}>{a.descricao}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom row: Benford + Agente forense */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        {/* Benford */}
-        <div className="card">
-          <div className="ch">
-            <div className="ct">Lei de Benford · primeiro dígito</div>
-            <span style={{ background: 'var(--wn-bg)', color: 'var(--wn)', border: '1px solid var(--wn-bd)', borderRadius: 100, fontSize: 10, fontWeight: 700, padding: '2px 8px' }}>Desvio &gt; 2σ no dígito 5</span>
-          </div>
-          <div className="cb">
-            <div style={{ fontSize: 11, color: 'var(--ink3)', marginBottom: 12 }}>Distribuição observada vs. esperada ({(data.total_lancamentos || 0).toLocaleString('pt-BR')} lançamentos)</div>
-            <Benford data={data.benford} />
-            <div style={{ display: 'flex', gap: 14, marginTop: 10, fontSize: 11, color: 'var(--ink3)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 6, borderRadius: 2, background: 'var(--bd)' }} /> Esperado</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 6, borderRadius: 2, background: 'var(--ok)', opacity: .8 }} /> Observado</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 10, height: 6, borderRadius: 2, background: 'var(--rk)', opacity: .8 }} /> Anomalia</div>
-            </div>
-            <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--wn-bg)', border: '1px solid var(--wn-bd)', borderRadius: 'var(--r)', fontSize: 11, color: 'var(--wn)', lineHeight: 1.6 }}>
-              <strong>Interpretação do agente:</strong> Excesso de valores iniciando com 5 (R$ 50k, R$ 500k...) pode indicar arredondamento artificial. Compatível com o achado F-001 (pagamentos a PJ de sócio em múltiplos de R$ 50k).
-            </div>
-          </div>
-        </div>
-
-        {/* Agente forense */}
-        <div className="card">
-          <div className="ch">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13 }}>✦</span>
-              <div className="ct">Agente forense</div>
-            </div>
-            <button className="btn sm gh" style={{ fontSize: 11, color: 'var(--ink3)' }} onClick={() => go('exec')}>Log da execução</button>
-          </div>
-          <div style={{ padding: '14px 18px', background: '#0A0A0F', borderRadius: '0 0 var(--rl) var(--rl)', minHeight: 200 }}>
-            {(data.execution_logs || []).map((l, i) => (
-              <div key={i} style={{ display: 'flex', gap: 12, padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,.04)', fontFamily: "'Geist Mono', monospace", fontSize: 11.5, lineHeight: 1.5 }}>
-                <span style={{ color: '#4a4a5a', flexShrink: 0 }}>{l.ts}</span>
-                <span style={{ color: l.tipo === 'critico' ? '#ff6b6b' : l.tipo === 'warn' ? '#f0a500' : l.tipo === 'ok' ? '#6fcf97' : '#666' }}>·</span>
-                <span style={{ color: l.tipo === 'critico' ? '#ff6b6b' : l.tipo === 'warn' ? '#f0a500' : l.tipo === 'ok' ? '#6fcf97' : '#888' }}>{l.msg}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: '12px 14px', borderTop: '1px solid var(--bd)' }}>
-            <button className="btn pr" style={{ width: '100%', justifyContent: 'center' }} onClick={() => go('forense')}>
-              {I.forense(13)}Abrir assistente forense
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ── ACHADOS ───────────────────────────────── */
-const Achados = () => {
-  const [data, setData] = useState([]);
-  const [filter, setFilter] = useState('todos');
-  const [loading, setLoading] = useState(true);
-  useEffect(() => { api.get('/api/audit/achados').then(d => setData(d.achados || [])).catch(console.error).finally(() => setLoading(false)); }, []);
-  const nc = { critico: 'var(--rk)', alto: 'var(--wn)', medio: '#E5A200', baixo: 'var(--ok)' };
-  const nb = { critico: 'brk', alto: 'bwn', medio: 'bwn', baixo: 'bok' };
-  const sb = { aberto: 'brk', em_analise: 'bwn', resolvido: 'bok' };
-  const sl = { aberto: 'Aberto', em_analise: 'Em análise', resolvido: 'Resolvido' };
-  const filtered = filter === 'todos' ? data : data.filter(a => a.nivel === filter || a.status === filter);
-  return (
-    <div className="page fup">
-      <div className="ph"><div><div className="pt">Achados</div><div className="ps">{data.length} achados identificados</div></div></div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {['todos', 'critico', 'alto', 'medio', 'aberto', 'em_analise'].map(f => (
-          <button key={f} className={`btn sm ${filter === f ? 'pr' : ''}`} onClick={() => setFilter(f)}>
-            {f === 'todos' ? 'Todos' : f === 'em_analise' ? 'Em análise' : f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
         ))}
       </div>
       <div className="card">
-        {loading ? <div style={{ padding: 40, textAlign: 'center' }}><Spin /></div> : (
+        <div className="ch"><div className="ct">Engajamentos</div></div>
+        {!cliente.engajamentos?.length?<div style={{padding:40,textAlign:'center',color:'var(--ink3)',fontSize:13}}>
+          Nenhum engajamento. <button className="btn sm pr" style={{marginLeft:8}} onClick={()=>setShowEngModal(true)}>Criar agora</button>
+        </div>:(
           <div className="tbl-wrap">
             <table className="tbl">
-              <thead><tr><th>Código</th><th>Achado</th><th>Nível</th><th style={{ textAlign: 'right' }}>Valor</th><th>Status</th></tr></thead>
+              <thead><tr><th>Período</th><th>Status</th><th>Score</th><th>Documentos</th><th></th></tr></thead>
               <tbody>
-                {filtered.map(a => (
-                  <tr key={a.id}>
-                    <td><span className="mono" style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink4)' }}>{a.code}</span></td>
-                    <td><div style={{ fontWeight: 500, fontSize: 12 }}>{a.titulo}</div><div style={{ fontSize: 11, color: 'var(--ink3)', marginTop: 2 }}>{a.descricao}</div></td>
-                    <td><span className={`badge ${nb[a.nivel]}`}><span className="dot" style={{ background: nc[a.nivel] }} />{a.nivel}</span></td>
-                    <td style={{ textAlign: 'right', fontWeight: 600 }} className="mono">{BRL(a.valor)}</td>
-                    <td><span className={`badge ${sb[a.status] || 'bgray'}`}>{sl[a.status] || a.status}</span></td>
+                {cliente.engajamentos.map(e=>(
+                  <tr key={e.id} onClick={()=>go(`engajamento:${e.id}`)}>
+                    <td style={{fontWeight:500}}>{e.periodo}{e.descricao&&<div style={{fontSize:11,color:'var(--ink3)'}}>{e.descricao}</div>}</td>
+                    <td><span className={`badge ${e.status==='conciliado'?'bok':e.status==='em_andamento'?'bin':'bgray'}`}>{e.status?.replace('_',' ')}</span></td>
+                    <td>{e.score!==null&&e.score!==undefined?<span style={{fontWeight:700,color:e.score>=80?'var(--ok)':e.score>=50?'var(--wn)':'var(--rk)'}}>{e.score}</span>:'—'}</td>
+                    <td style={{textAlign:'center'}}>{e.total_documentos||0}</td>
+                    <td><button className="btn sm gh" onClick={e2=>{e2.stopPropagation();go(`engajamento:${e.id}`);}}>Abrir →</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -905,328 +567,408 @@ const Achados = () => {
   );
 };
 
-/* ── MATRIZ ────────────────────────────────── */
-const Matriz = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => { api.get('/api/audit/matriz').then(setData).catch(console.error).finally(() => setLoading(false)); }, []);
-  const sc = { conforme: 'var(--ok)', parcial: 'var(--wn)', nao_conforme: 'var(--rk)' };
-  const sb = { conforme: 'bok', parcial: 'bwn', nao_conforme: 'brk' };
-  const sl = { conforme: 'Conforme', parcial: 'Parcial', nao_conforme: 'Não conforme' };
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin /></div>;
-  const cats = [...new Set((data?.matriz || []).map(m => m.categoria))];
+// MODAL NOVO ENGAJAMENTO
+const ModalEngajamento = ({clienteId,clienteNome,onClose,onSaved}) => {
+  const [form,setForm]=useState({periodo:'',descricao:''});
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
+  const save = async () => {
+    if(!form.periodo){setErr('Período obrigatório');return;}
+    setLoading(true);setErr('');
+    try{const e=await api.post('/api/engajamentos',{...form,cliente_id:clienteId});onSaved(e);}
+    catch(e){setErr(e.message);}finally{setLoading(false);}
+  };
   return (
-    <div className="page fup">
-      <div className="ph"><div><div className="pt">Matriz de conformidade</div><div className="ps">{data?.total} itens avaliados</div></div></div>
-      <div className="g3" style={{ marginBottom: 20 }}>
-        {[{ l: 'Conformes', v: data?.conforme, c: 'var(--ok)' }, { l: 'Parciais', v: data?.parcial, c: 'var(--wn)' }, { l: 'Não conformes', v: data?.nao_conforme, c: 'var(--rk)' }].map(s => (
-          <div key={s.l} className="stat"><div className="stat-lbl">{s.l}</div><div className="stat-val" style={{ color: s.c }}>{s.v}</div></div>
-        ))}
-      </div>
-      {cats.map(cat => (
-        <div key={cat} className="card" style={{ marginBottom: 14 }}>
-          <div className="ch"><div className="ct">{cat}</div></div>
-          <div className="tbl-wrap">
-            <table className="tbl">
-              <thead><tr><th>Item</th><th>Status</th><th>Achados</th><th>Risco</th></tr></thead>
-              <tbody>
-                {(data?.matriz || []).filter(m => m.categoria === cat).map(m => (
-                  <tr key={m.id}>
-                    <td style={{ fontWeight: 500 }}>{m.item}</td>
-                    <td><span className={`badge ${sb[m.status]}`}><span className="dot" style={{ background: sc[m.status] }} />{sl[m.status]}</span></td>
-                    <td style={{ textAlign: 'center', color: m.achados > 0 ? 'var(--rk)' : 'var(--ink3)', fontWeight: m.achados > 0 ? 600 : 400 }}>{m.achados > 0 ? m.achados : '—'}</td>
-                    <td><span className={`badge ${m.risco === 'critico' ? 'brk' : m.risco === 'alto' ? 'bwn' : m.risco === 'medio' ? 'bwn' : 'bok'}`}>{m.risco}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-h"><div className="modal-title">Novo engajamento — {clienteNome}</div><button className="btn gh sm" onClick={onClose}>{I.x(14)}</button></div>
+        <div className="modal-body">
+          {err&&<div style={{background:'var(--rk-bg)',border:'1px solid var(--rk-bd)',borderRadius:'var(--r)',padding:'8px 12px',fontSize:12,color:'var(--rk)',marginBottom:12}}>{err}</div>}
+          <div className="inp-group"><label className="inp-lbl">Período de análise *</label><input className="inp" value={form.periodo} onChange={e=>setForm({...form,periodo:e.target.value})} placeholder="Ex: Novembro/2026 ou 01/10/2026 a 31/10/2026"/></div>
+          <div className="inp-group"><label className="inp-lbl">Descrição (opcional)</label><input className="inp" value={form.descricao} onChange={e=>setForm({...form,descricao:e.target.value})} placeholder="Ex: Auditoria mensal, fechamento anual..."/></div>
         </div>
-      ))}
-    </div>
-  );
-};
-
-/* ── EXEC ──────────────────────────────────── */
-const Exec = () => {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => { api.get('/api/audit/execution').then(d => setLogs(d.logs || [])).catch(console.error).finally(() => setLoading(false)); }, []);
-  return (
-    <div className="page fup">
-      <div className="ph"><div><div className="pt">Execução do agente</div><div className="ps">Log detalhado da última análise</div></div></div>
-      <div className="card">
-        <div className="ch"><div className="ct">✦ Log · {new Date().toLocaleDateString('pt-BR')}</div><span className="badge bok"><span className="dot dok" />Concluído</span></div>
-        <div style={{ padding: '14px 18px', background: '#0A0A0F', borderRadius: '0 0 var(--rl) var(--rl)', overflowX: 'auto' }}>
-          {loading ? <div style={{ color: '#555', padding: 16 }}>Carregando...</div> : logs.map((l, i) => (
-            <div key={i} className="log-line">
-              <span className="l-ts">{l.ts}</span>
-              <span style={{ color: '#555' }}>·</span>
-              <span className={`l-${l.tipo}`}>{l.msg}</span>
-            </div>
-          ))}
-        </div>
+        <div className="modal-footer"><button className="btn" onClick={onClose}>Cancelar</button><button className="btn pr" onClick={save} disabled={loading}>{loading?<><Spin/>Salvando...</>:'Criar engajamento'}</button></div>
       </div>
     </div>
   );
 };
 
-/* ── FONTES ────────────────────────────────── */
-const Fontes = ({ screen }) => {
-  const [docs, setDocs] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [drag, setDrag] = useState(false);
-  const ref = useRef();
-  const titles = { extratos: 'Extratos bancários', uploads: 'Uploads', notas: 'Notas fiscais', contratos: 'Contratos', qsa: 'QSA / Receita' };
-  useEffect(() => { api.get('/api/upload').then(d => setDocs(d.documents || [])).catch(console.error); }, []);
+// ENGAJAMENTO DETALHE
+const EngajamentoDetalhe = ({engId,go}) => {
+  const [eng,setEng]=useState(null);
+  const [conc,setConc]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [running,setRunning]=useState(false);
+  const [genLaudo,setGenLaudo]=useState(false);
+  const [drag,setDrag]=useState(false);
+  const [uploading,setUploading]=useState(false);
+  const [tipoDoc,setTipoDoc]=useState('auto');
+  const ref=useRef();
+
+  const load = async () => {
+    const d = await api.get(`/api/engajamentos/${engId}`);
+    setEng(d);
+    if(d.status==='conciliado') {
+      try{const c=await api.get(`/api/conciliacao/${engId}`);setConc(c);}catch(e){}
+    }
+  };
+
+  useEffect(()=>{load().catch(console.error).finally(()=>setLoading(false));},[engId]);
+
   const doUpload = async files => {
     setUploading(true);
     const form = new FormData();
-    Array.from(files).forEach(f => form.append('files', f));
+    Array.from(files).forEach(f=>form.append('files',f));
+    if(tipoDoc!=='auto') form.append('tipo',tipoDoc);
     try {
-      const res = await fetch(API + '/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${api.token}` }, body: form });
-      const d = await res.json(); if (!res.ok) throw new Error(d.error);
-      const r = await api.get('/api/upload'); setDocs(r.documents || []);
-    } catch (e) { alert('Erro: ' + e.message); } finally { setUploading(false); }
+      await fetch(`${API}/api/upload/${engId}`,{method:'POST',headers:{Authorization:`Bearer ${api.token}`},body:form});
+      await load();
+    } catch(e){alert('Erro: '+e.message);}finally{setUploading(false);}
   };
-  return (
-    <div className="page fup">
-      <div className="ph"><div><div className="pt">{titles[screen] || 'Fontes'}</div><div className="ps">Documentos indexados para análise</div></div></div>
-      <div className="g2">
-        <div>
-          <div className={`dz ${drag ? 'drag' : ''}`} onClick={() => ref.current?.click()}
-            onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
-            onDrop={e => { e.preventDefault(); setDrag(false); doUpload(e.dataTransfer.files); }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--sf2)', border: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              {uploading ? <Spin /> : I.upload(22)}
-            </div>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>{uploading ? 'Enviando...' : 'Adicionar documentos'}</div>
-            <div style={{ fontSize: 11, color: 'var(--ink3)', marginTop: 4 }}>OFX, XML NF-e, PDF, CSV</div>
-            <button className="btn pr" style={{ marginTop: 16 }} onClick={e => { e.stopPropagation(); ref.current?.click(); }}>{I.upload(13)}Selecionar</button>
-            <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.png,.csv" style={{ display: 'none' }} onChange={e => doUpload(e.target.files)} />
-          </div>
-        </div>
-        <div className="card">
-          <div className="ch"><div className="ct">Arquivos ({docs.length})</div></div>
-          <div style={{ overflowY: 'auto', maxHeight: 400 }}>
-            {docs.length === 0 ? <div style={{ padding: 40, textAlign: 'center', color: 'var(--ink3)', fontSize: 13 }}>Nenhum arquivo ainda</div> :
-              docs.map(d => (
-                <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '1px solid var(--bd2)' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.filename}</div>
-                    <div className="mono" style={{ fontSize: 10, color: 'var(--ink3)', marginTop: 2 }}>{(d.size / 1024).toFixed(0)} KB · {d.type}</div>
-                  </div>
-                  <span className={`badge ${d.status === 'done' ? 'bok' : d.status === 'error' ? 'brk' : 'bwn'}`}>{d.status === 'done' ? 'Lido' : d.status === 'error' ? 'Erro' : 'Processando'}</span>
-                </div>
-              ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-/* ── LAUDO ─────────────────────────────────── */
-const Laudo = () => {
-  const [data, setData] = useState(null);
-  const [gen, setGen] = useState(false);
-  useEffect(() => { api.get('/api/audit/overview').then(setData).catch(console.error); }, []);
-  const eng = data?.engagement;
+  const runConciliacao = async () => {
+    setRunning(true);
+    try{const c=await api.post(`/api/conciliacao/${engId}/run`,{});setConc(c);await load();}
+    catch(e){alert('Erro: '+e.message);}finally{setRunning(false);}
+  };
+
+  const gerarLaudo = async () => {
+    setGenLaudo(true);
+    try{await api.post(`/api/laudo/${engId}/gerar`,{});alert('Laudo gerado com sucesso!');}
+    catch(e){alert('Erro: '+e.message);}finally{setGenLaudo(false);}
+  };
+
+  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
+  if(!eng) return null;
+
+  const r = conc?.resumo;
+  const docs = eng.documentos||[];
+  const tipoCount = {extrato:0,nota_fiscal:0,contrato:0,comprovante:0,outro:0};
+  docs.forEach(d=>{tipoCount[d.tipo]=(tipoCount[d.tipo]||0)+1;});
+
+  const statusColor = {conforme:'var(--ok)',divergencia:'var(--wn)',sem_nf:'var(--wn)',sem_contrato:'var(--rk)',sem_documentacao:'var(--rk)'};
+  const statusLabel = {conforme:'Conforme',divergencia:'Divergência',sem_nf:'Sem NF',sem_contrato:'Sem contrato',sem_documentacao:'Sem documentação'};
+  const statusBadge = {conforme:'bok',divergencia:'bwn',sem_nf:'bwn',sem_contrato:'brk',sem_documentacao:'brk'};
+
   return (
     <div className="page fup">
       <div className="ph">
-        <div><div className="pt">Laudo de auditoria</div><div className="ps">Documento formal de evidências e achados</div></div>
-        <button className="btn pr" onClick={() => { setGen(true); setTimeout(() => { setGen(false); alert('Laudo gerado! Em produção, o PDF seria baixado.'); }, 2500); }} disabled={gen}>
-          {gen ? <><Spin />Gerando...</> : <>{I.dl(13)}Gerar laudo PDF</>}
-        </button>
-      </div>
-      <div className="g2">
-        <div className="card">
-          <div className="ch"><div className="ct">Dados do engajamento</div></div>
-          <div className="cb">
-            {[['Empresa', eng?.empresa || '—'], ['CNPJ', eng?.cnpj || '—'], ['Engajamento', eng?.code || '—'], ['Período', eng ? `${eng.periodo_inicio} → ${eng.periodo_fim}` : '—'], ['Score', `${data?.score || 78}/100`], ['Achados', `${data?.achados_total || 0} (${data?.indicios_fraude || 0} fraudes)`], ['Exposição', BRL(data?.exposicao_financeira)]].map(([l, v]) => (
-              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid var(--bd2)', fontSize: 13, gap: 12 }}>
-                <span style={{ color: 'var(--ink3)', flexShrink: 0 }}>{l}</span>
-                <span style={{ fontWeight: 500, textAlign: 'right' }}>{v}</span>
-              </div>
-            ))}
-          </div>
+        <div>
+          <button className="btn sm gh" style={{marginBottom:8}} onClick={()=>go(`cliente:${eng.cliente_id}`)}>{I.back(12)}Voltar</button>
+          <div className="pt">{eng.cliente_nome}</div>
+          <div className="ps">{eng.periodo}{eng.descricao&&` · ${eng.descricao}`}</div>
         </div>
-        <div className="card">
-          <div className="ch"><div className="ct">Estrutura do laudo</div></div>
-          <div className="cb">
-            {[['1.', 'Sumário executivo', 'Visão geral e conclusões'], ['2.', 'Escopo e metodologia', 'Fontes e técnicas utilizadas'], ['3.', 'Achados e evidências', `${data?.achados_total || 0} achados detalhados`], ['4.', 'Análise estatística', 'Lei de Benford e padrões'], ['5.', 'Partes relacionadas', 'QSA e conflitos de interesse'], ['6.', 'Matriz de conformidade', 'Avaliação de controles'], ['7.', 'Recomendações', 'Ações corretivas prioritárias'], ['8.', 'Anexos', 'Planilhas e documentos']].map(([n, t, s]) => (
-              <div key={t} style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--bd2)' }}>
-                <span className="mono" style={{ fontWeight: 700, color: 'var(--ink3)', fontSize: 11, minWidth: 20, flexShrink: 0 }}>{n}</span>
-                <div><div style={{ fontWeight: 500, fontSize: 12 }}>{t}</div><div style={{ fontSize: 11, color: 'var(--ink3)', marginTop: 1 }}>{s}</div></div>
-              </div>
-            ))}
-          </div>
+        <div style={{display:'flex',gap:8}}>
+          {conc&&<button className="btn" onClick={gerarLaudo} disabled={genLaudo}>{genLaudo?<><Spin/>Gerando...</>:<>{I.laudo(13)}Gerar laudo</>}</button>}
+          <button className="btn pr" onClick={runConciliacao} disabled={running||docs.length===0}>{running?<><Spin/>Conciliando...</>:<>{I.run(13)}Rodar conciliação</>}</button>
         </div>
       </div>
+
+      <div className="g2" style={{marginBottom:20}}>
+        {/* Upload */}
+        <div>
+          <div className="card" style={{marginBottom:16}}>
+            <div className="ch"><div className="ct">Upload de documentos</div>
+              <select className="inp" style={{width:'auto',padding:'4px 28px 4px 10px',fontSize:11}} value={tipoDoc} onChange={e=>setTipoDoc(e.target.value)}>
+                <option value="auto">Detectar automaticamente</option>
+                <option value="extrato">Extrato bancário</option>
+                <option value="nota_fiscal">Nota fiscal</option>
+                <option value="contrato">Contrato</option>
+                <option value="comprovante">Comprovante de pgto</option>
+              </select>
+            </div>
+            <div className="cb">
+              <div className={`dz ${drag?'drag':''}`}
+                onClick={()=>ref.current?.click()}
+                onDragOver={e=>{e.preventDefault();setDrag(true);}}
+                onDragLeave={()=>setDrag(false)}
+                onDrop={e=>{e.preventDefault();setDrag(false);doUpload(e.dataTransfer.files);}}>
+                <div style={{width:44,height:44,borderRadius:12,background:'var(--sf2)',border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
+                  {uploading?<Spin/>:{I.upload(22)}}
+                </div>
+                <div style={{fontWeight:600,fontSize:14}}>{uploading?'Enviando...':'Arraste os arquivos aqui'}</div>
+                <div style={{fontSize:12,color:'var(--ink3)',marginTop:4}}>Extrato bancário (OFX/PDF), Notas fiscais (XML/PDF), Contratos (PDF), Comprovantes</div>
+                <button className="btn pr sm" style={{marginTop:14}} onClick={e=>{e.stopPropagation();ref.current?.click();}}>{I.plus(12)}Selecionar arquivos</button>
+                <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.png,.csv,.xlsx" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
+              </div>
+            </div>
+          </div>
+
+          {/* Documentos enviados */}
+          <div className="card">
+            <div className="ch"><div className="ct">Documentos ({docs.length})</div></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0}}>
+              {[
+                {tipo:'extrato',lbl:'Extratos',icon:'🏦'},
+                {tipo:'nota_fiscal',lbl:'Notas fiscais',icon:'🧾'},
+                {tipo:'contrato',lbl:'Contratos',icon:'📋'},
+                {tipo:'comprovante',lbl:'Comprovantes',icon:'✅'},
+              ].map(t=>(
+                <div key={t.tipo} style={{padding:'12px 16px',borderRight:t.tipo==='extrato'||t.tipo==='contrato'?'1px solid var(--bd2)':'none',borderBottom:t.tipo==='extrato'||t.tipo==='nota_fiscal'?'1px solid var(--bd2)':'none',display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{fontSize:20}}>{t.icon}</span>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:18,fontVariantNumeric:'tabular-nums'}}>{tipoCount[t.tipo]||0}</div>
+                    <div style={{fontSize:10,color:'var(--ink3)'}}>{t.lbl}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {docs.length>0&&(
+              <div style={{maxHeight:200,overflowY:'auto',borderTop:'1px solid var(--bd2)'}}>
+                {docs.map(d=>(
+                  <div key={d.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 14px',borderBottom:'1px solid var(--bd2)'}}>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:12,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.filename}</div>
+                      <div style={{fontSize:10,color:'var(--ink3)',marginTop:1}}>{d.tipo} · {d.lancamentos_extraidos} lançamentos extraídos</div>
+                    </div>
+                    <span className={`badge ${d.status==='processado'?'bok':'bwn'}`}>{d.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Resultado */}
+        <div>
+          {!conc?(
+            <div className="card" style={{height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:40,textAlign:'center',gap:16}}>
+              <div style={{fontSize:32}}>🔍</div>
+              <div style={{fontWeight:600,fontSize:15}}>Pronto para conciliar</div>
+              <div style={{fontSize:13,color:'var(--ink3)',lineHeight:1.6}}>Faça upload dos documentos e clique em<br/><strong>Rodar conciliação</strong> para ver o resultado</div>
+              {docs.length>0&&<button className="btn pr" onClick={runConciliacao} disabled={running}>{running?<><Spin/>Analisando...</>:<>{I.run(13)}Rodar agora</>}</button>}
+            </div>
+          ):(
+            <div style={{display:'flex',flexDirection:'column',gap:16}}>
+              {/* Score card */}
+              <div className="card" style={{background:r.score>=80?'var(--ok-bg)':r.score>=50?'var(--wn-bg)':'var(--rk-bg)',border:`1px solid ${r.score>=80?'var(--ok-bd)':r.score>=50?'var(--wn-bd)':'var(--rk-bd)'}`}}>
+                <div className="cb">
+                  <div style={{display:'flex',alignItems:'center',gap:20}}>
+                    <ScoreRing score={r.score} size={80}/>
+                    <div>
+                      <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>
+                        {r.score>=80?'✅ Alta conformidade':r.score>=50?'⚠️ Conformidade parcial':'🚨 Baixa conformidade'}
+                      </div>
+                      <div style={{fontSize:12,color:'var(--ink3)',lineHeight:1.6}}>
+                        {BRL(r.total_pago)} em {r.total_pagamentos} pagamentos<br/>
+                        <strong style={{color:'var(--ok)'}}>{r.pct_conforme}% conforme</strong> · {r.pct_problema}% com problemas
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Breakdown */}
+              <div className="card">
+                <div className="ch"><div className="ct">Resultado por status</div></div>
+                <div>
+                  {[
+                    {s:'conforme',l:'Conforme',v:r.valor_conforme,q:r.qtd_conforme,c:'var(--ok)'},
+                    {s:'divergencia',l:'Divergência de valor',v:r.valor_divergencia,q:r.qtd_divergencia,c:'var(--wn)'},
+                    {s:'sem_nf',l:'Sem nota fiscal',v:r.valor_sem_nf,q:r.qtd_sem_nf,c:'var(--wn)'},
+                    {s:'sem_contrato',l:'Sem contrato',v:r.valor_sem_contrato,q:r.qtd_sem_contrato,c:'var(--rk)'},
+                    {s:'sem_documentacao',l:'Sem documentação',v:r.valor_sem_documentacao,q:r.qtd_sem_doc,c:'var(--rk)'},
+                  ].filter(i=>i.q>0).map(i=>(
+                    <div key={i.s} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 16px',borderBottom:'1px solid var(--bd2)'}}>
+                      <div style={{width:4,height:32,borderRadius:2,background:i.c,flexShrink:0}}/>
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:500,fontSize:12}}>{i.l}</div>
+                        <div style={{fontSize:11,color:'var(--ink3)'}}>{i.q} lançamento{i.q>1?'s':''}</div>
+                      </div>
+                      <div style={{fontWeight:700,fontSize:13,fontVariantNumeric:'tabular-nums',color:i.c}}>{BRL(i.v)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Lançamentos detalhados */}
+      {conc&&conc.resultados?.length>0&&(
+        <div className="card">
+          <div className="ch"><div className="ct">Lançamentos detalhados</div><div style={{fontSize:11,color:'var(--ink3)'}}>{conc.resultados.length} pagamentos</div></div>
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead><tr><th>Data</th><th>Descrição</th><th style={{textAlign:'right'}}>Valor pago</th><th>NF</th><th>Contrato</th><th>Comp.</th><th>Status</th><th>Divergências</th></tr></thead>
+              <tbody>
+                {conc.resultados.map((l,i)=>(
+                  <tr key={i}>
+                    <td className="mono" style={{fontSize:11,color:'var(--ink3)'}}>{l.data}</td>
+                    <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:500}}>{l.descricao}</td>
+                    <td className="mono" style={{textAlign:'right',fontWeight:600}}>{BRL(l.valor_pago)}</td>
+                    <td style={{textAlign:'center'}}>{l.tem_nf?<span style={{color:'var(--ok)'}}>✓</span>:<span style={{color:'var(--rk)'}}>✗</span>}</td>
+                    <td style={{textAlign:'center'}}>{l.tem_contrato?<span style={{color:'var(--ok)'}}>✓</span>:<span style={{color:'var(--rk)'}}>✗</span>}</td>
+                    <td style={{textAlign:'center'}}>{l.tem_comprovante?<span style={{color:'var(--ok)'}}>✓</span>:<span style={{color:'var(--ink4)'}}>—</span>}</td>
+                    <td><span className={`badge ${statusBadge[l.status]||'bgray'}`}>{statusLabel[l.status]||l.status}</span></td>
+                    <td style={{maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:11,color:'var(--wn)'}}>{l.divergencias?.join('; ')||'—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-/* ── FORENSE ───────────────────────────────── */
-const Forense = () => {
-  const [msgs, setMsgs] = useState([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const ref = useRef();
-  useEffect(() => { ref.current && (ref.current.scrollTop = ref.current.scrollHeight); }, [msgs]);
-  const send = async text => {
-    const m = text || input.trim(); if (!m || sending) return;
-    setInput(''); setSending(true);
-    setMsgs(p => [...p, { id: Date.now(), role: 'user', content: m }]);
-    try { const d = await api.post('/api/audit/forense', { message: m }); setMsgs(p => [...p, d.message]); }
-    catch (e) { setMsgs(p => [...p, { id: Date.now() + 1, role: 'assistant', content: 'Erro: ' + e.message }]); }
-    finally { setSending(false); }
-  };
-  const suggs = ['Resumo do engajamento', 'Detalhe o achado F-001', 'Análise de Benford', 'Qual a exposição total?'];
+// ENGAJAMENTOS LIST
+const Engajamentos = ({go}) => {
+  const [engs,setEngs]=useState([]);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{api.get('/api/engajamentos').then(d=>setEngs(d.engajamentos||[])).catch(console.error).finally(()=>setLoading(false));},[]);
   return (
-    <div className="chat-wrap">
-      <div style={{ padding: '14px 20px 0', borderBottom: '1px solid var(--bd)', background: 'var(--sf)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 12 }}>
-          <div className="agav" style={{ width: 36, height: 36, fontSize: 11 }}>AI</div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-.03em' }}>Assistente Forense</div>
-            <div style={{ fontSize: 11, color: 'var(--ok)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
-              <span className="dot dok" style={{ width: 5, height: 5 }} />online · acesso a todos os achados
-            </div>
+    <div className="page fup">
+      <div className="ph"><div><div className="pt">Engajamentos</div><div className="ps">{engs.length} períodos</div></div></div>
+      {loading?<div style={{textAlign:'center',padding:60}}><Spin/></div>:
+       engs.length===0?<div style={{textAlign:'center',padding:60,color:'var(--ink3)'}}>
+         <div style={{fontSize:32,marginBottom:10}}>📋</div>
+         <div style={{fontWeight:600,color:'var(--ink)',marginBottom:6}}>Nenhum engajamento</div>
+         <div style={{fontSize:13,marginBottom:16}}>Acesse um cliente para criar um engajamento</div>
+         <button className="btn pr" onClick={()=>go('clientes')}>Ver clientes</button>
+       </div>:(
+        <div className="card">
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead><tr><th>Cliente</th><th>Período</th><th>Score</th><th>Documentos</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                {engs.map(e=>(
+                  <tr key={e.id} onClick={()=>go(`engajamento:${e.id}`)}>
+                    <td style={{fontWeight:500}}>{e.cliente_nome}</td>
+                    <td>{e.periodo}{e.descricao&&<div style={{fontSize:11,color:'var(--ink3)'}}>{e.descricao}</div>}</td>
+                    <td>{e.score!==null&&e.score!==undefined?<span style={{fontWeight:700,fontSize:14,color:e.score>=80?'var(--ok)':e.score>=50?'var(--wn)':'var(--rk)'}}>{e.score}</span>:'—'}</td>
+                    <td style={{textAlign:'center'}}>{e.total_documentos||0}</td>
+                    <td><span className={`badge ${e.status_conciliacao==='aprovado'||e.status==='conciliado'?'bok':e.status==='em_andamento'?'bin':'bgray'}`}>{e.status?.replace('_',' ')}</span></td>
+                    <td><button className="btn sm gh" onClick={ev=>{ev.stopPropagation();go(`engajamento:${e.id}`);}}>Abrir →</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <button className="btn sm gh" style={{ marginLeft: 'auto' }} onClick={() => setMsgs([])}>{I.x(12)}Limpar</button>
         </div>
-      </div>
-      <div ref={ref} className="chat-msgs">
-        {msgs.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--ink3)' }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>Assistente Forense Contábil</div>
-            <div style={{ fontSize: 12, lineHeight: 1.65 }}>Acesso completo a achados, documentos e análises.<br />Investigue qualquer transação suspeita.</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginTop: 18 }}>
-              {suggs.map(s => <button key={s} className="btn sm" onClick={() => send(s)}>{s}</button>)}
-            </div>
-          </div>
-        )}
-        {msgs.map((m, i) => (
-          <div key={m.id || i} className="fup" style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start', gap: 6 }}>
-            <div className={`mrow ${m.role === 'user' ? 'me' : ''}`}>
-              {m.role === 'assistant' && <div className="agav" style={{ width: 26, height: 26, fontSize: 9, flexShrink: 0 }}>AI</div>}
-              <div className={`bubble ${m.role === 'user' ? 'me' : 'ai'}`}>{m.content}</div>
-            </div>
-          </div>
-        ))}
-        {sending && (
-          <div className="mrow">
-            <div className="agav" style={{ width: 26, height: 26, fontSize: 9 }}>AI</div>
-            <div className="bubble ai" style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '10px 12px' }}>
-              <span className="pulse" /><span className="pulse" /><span className="pulse" />
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="chat-bar">
-        <input className="inp" style={{ flex: 1 }} placeholder="Investigue um achado, CNPJ ou padrão suspeito..."
-          value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()} disabled={sending} />
-        <button className="btn pr" onClick={() => send()} disabled={!input.trim() || sending}>{I.send(13)}</button>
-      </div>
+      )}
     </div>
   );
 };
 
-/* ── APP ───────────────────────────────────── */
+// LAUDOS
+const Laudos = ({go}) => {
+  const [laudos,setLaudos]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [selected,setSelected]=useState(null);
+  useEffect(()=>{api.get('/api/laudo').then(d=>setLaudos(d.laudos||[])).catch(console.error).finally(()=>setLoading(false));},[]);
+  if(selected) return (
+    <div className="page fup">
+      <div className="ph">
+        <div>
+          <button className="btn sm gh" style={{marginBottom:8}} onClick={()=>setSelected(null)}>{I.back(12)}Voltar</button>
+          <div className="pt">Laudo · {selected.cliente_nome}</div>
+          <div className="ps">{selected.periodo} · Score {selected.score}/100 · Gerado em {new Date(selected.gerado_em).toLocaleDateString('pt-BR')}</div>
+        </div>
+        <button className="btn pr" onClick={()=>{const b=new Blob([selected.texto],{type:'text/plain'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`laudo-${selected.cliente_nome}-${selected.periodo}.txt`;a.click();}}>{I.dl(13)}Baixar</button>
+      </div>
+      <div className="card">
+        <div className="cb">
+          <pre style={{fontFamily:'Geist Mono',fontSize:12,lineHeight:1.7,whiteSpace:'pre-wrap',color:'var(--ink)',background:'var(--sf2)',padding:20,borderRadius:'var(--r)'}}>{selected.texto}</pre>
+        </div>
+      </div>
+    </div>
+  );
+  return (
+    <div className="page fup">
+      <div className="ph"><div><div className="pt">Laudos</div><div className="ps">{laudos.length} documentos gerados</div></div></div>
+      {loading?<div style={{textAlign:'center',padding:60}}><Spin/></div>:
+       laudos.length===0?<div style={{textAlign:'center',padding:60,color:'var(--ink3)'}}>
+         <div style={{fontSize:32,marginBottom:10}}>📄</div>
+         <div style={{fontWeight:600,color:'var(--ink)',marginBottom:6}}>Nenhum laudo gerado</div>
+         <div style={{fontSize:13}}>Execute a conciliação de um engajamento para gerar o laudo</div>
+       </div>:(
+        <div className="card">
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead><tr><th>Cliente</th><th>Período</th><th>Score</th><th>Gerado em</th><th></th></tr></thead>
+              <tbody>
+                {laudos.map(l=>(
+                  <tr key={l.id} onClick={()=>setSelected(l)}>
+                    <td style={{fontWeight:500}}>{l.cliente_nome}</td>
+                    <td>{l.periodo}</td>
+                    <td><span style={{fontWeight:700,color:l.score>=80?'var(--ok)':l.score>=50?'var(--wn)':'var(--rk)'}}>{l.score}/100</span></td>
+                    <td style={{color:'var(--ink3)'}}>{new Date(l.gerado_em).toLocaleDateString('pt-BR')}</td>
+                    <td><button className="btn sm gh" onClick={e=>{e.stopPropagation();setSelected(l);}}>Ver →</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// APP
 const App = () => {
-  const [user, setUser] = useState(null);
-  const [screen, setScreen] = useState('overview');
-  const [eng, setEng] = useState(null);
-  const [nAchados, setNAchados] = useState(0);
-  const [checking, setChecking] = useState(!!localStorage.getItem('ct'));
+  const [user,setUser]=useState(null);
+  const [screen,setScreen]=useState('dashboard');
+  const [checking,setChecking]=useState(!!localStorage.getItem('ct'));
 
-  useEffect(() => {
-    if (!localStorage.getItem('ct')) { setChecking(false); return; }
-    api.get('/auth/me').then(setUser).catch(() => { localStorage.removeItem('ct'); api.token = null; }).finally(() => setChecking(false));
-  }, []);
+  useEffect(()=>{
+    if(!localStorage.getItem('ct')){setChecking(false);return;}
+    api.get('/auth/me').then(setUser).catch(()=>{localStorage.removeItem('ct');api.token=null;}).finally(()=>setChecking(false));
+  },[]);
 
-  useEffect(() => {
-    if (!user) return;
-    api.get('/api/audit/engagement').then(setEng).catch(() => {});
-    api.get('/api/audit/achados').then(d => setNAchados(d.achados?.filter(a => a.status !== 'resolvido').length || 0)).catch(() => {});
-  }, [user]);
+  const logout=()=>{localStorage.removeItem('ct');api.token=null;setUser(null);setScreen('dashboard');};
 
-  const logout = () => { localStorage.removeItem('ct'); api.token = null; setUser(null); };
-
-  const titles = { overview: 'Visão geral', achados: 'Achados', matriz: 'Matriz de conformidade', exec: 'Execução do agente', extratos: 'Extratos', uploads: 'Uploads', notas: 'Notas fiscais', contratos: 'Contratos', qsa: 'QSA / Receita', laudo: 'Laudo de auditoria', forense: 'Assistente forense' };
-
-  const mobileTabs = [
-    { id: 'overview', lbl: 'Visão geral', icon: 13 },
-    { id: 'achados', lbl: 'Achados', icon: 'achados' },
-    { id: 'matriz', lbl: 'Matriz', icon: 'matriz' },
-    { id: 'forense', lbl: 'Forense', icon: 'forense' },
-    { id: 'laudo', lbl: 'Laudo', icon: 'laudo' },
+  const screenTitle={dashboard:'Dashboard',clientes:'Clientes',engajamentos:'Engajamentos',laudos:'Laudos'};
+  const mobileTabs=[
+    {id:'dashboard',lbl:'Dashboard',Ic:I.dash},
+    {id:'clientes',lbl:'Clientes',Ic:I.clients},
+    {id:'engajamentos',lbl:'Engajamentos',Ic:I.eng},
+    {id:'laudos',lbl:'Laudos',Ic:I.laudo},
   ];
 
-  const pages = {
-    overview: <Overview go={setScreen} />, achados: <Achados />, matriz: <Matriz />, exec: <Exec />,
-    extratos: <Fontes screen="extratos" />, uploads: <Fontes screen="uploads" />,
-    notas: <Fontes screen="notas" />, contratos: <Fontes screen="contratos" />, qsa: <Fontes screen="qsa" />,
-    laudo: <Laudo />, forense: <Forense />,
+  const renderPage=()=>{
+    if(screen==='dashboard') return <Dashboard go={setScreen}/>;
+    if(screen==='clientes'||screen==='clientes:novo') return <Clientes go={setScreen} forceNew={screen==='clientes:novo'}/>;
+    if(screen?.startsWith('cliente:')) return <ClienteDetalhe clienteId={screen.split(':')[1]} go={setScreen}/>;
+    if(screen?.startsWith('engajamento:')) return <EngajamentoDetalhe engId={screen.split(':')[1]} go={setScreen}/>;
+    if(screen==='engajamentos') return <Engajamentos go={setScreen}/>;
+    if(screen==='laudos') return <Laudos go={setScreen}/>;
+    return <Dashboard go={setScreen}/>;
   };
 
-  if (checking) return <div style={{ width: '100%', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spin /></div>;
-  if (!user) return <Login onLogin={setUser} />;
+  const topTitle=()=>{
+    if(screen?.startsWith('cliente:')) return 'Cliente';
+    if(screen?.startsWith('engajamento:')) return 'Engajamento';
+    return screenTitle[screen]||screen;
+  };
 
-  const isChat = screen === 'forense';
+  if(checking) return <div style={{width:'100%',height:'100dvh',display:'flex',alignItems:'center',justifyContent:'center'}}><Spin/></div>;
+  if(!user) return <Login onLogin={setUser}/>;
 
   return (
     <div className="app">
-      <Sidebar cur={screen} go={setScreen} user={user} logout={logout} eng={eng} nAchados={nAchados} />
+      <Sidebar screen={screen} go={setScreen} user={user} logout={logout}/>
       <div className="app-main">
-
         {/* Mobile header */}
         <div className="m-header">
-          <LogoA size={26} />
-          <span className="m-header-title">{titles[screen] || screen}</span>
-          <button className="btn sm gh icon" onClick={() => setScreen('forense')}>{I.forense(16)}</button>
-          <button className="btn sm pr" onClick={() => setScreen('laudo')}>{I.laudo(14)}</button>
+          <LogoA size={26}/>
+          <span style={{fontWeight:600,fontSize:15,letterSpacing:'-.02em',flex:1}}>{topTitle()}</span>
         </div>
-
         {/* Desktop topbar */}
         <div className="topbar">
-          <div className="tb-bc">
-            <LogoFull />
-            <span style={{ color: 'var(--bd)', margin: '0 4px' }}>/</span>
-            <span>#{eng?.code || '—'}</span>
-            <span style={{ color: 'var(--bd)' }}>/</span>
-            <span className="tb-bc-cur">{titles[screen]}</span>
-          </div>
-          <div className="tb-search">
-            <div className="tb-si">
-              {I.forense(12)}
-              <input className="tb-inp" placeholder="Buscar lançamento, CNPJ, contrato..." />
-              <span className="tb-kbd">⌘K</span>
-            </div>
-          </div>
-          <div className="tb-acts">
-            <button className="btn sm gh icon">{I.bell(13)}</button>
-            <button className="btn sm">{I.dl(12)}Exportar</button>
-            <button className="btn sm pr" onClick={() => setScreen('laudo')}>{I.laudo(12)}Gerar laudo</button>
-          </div>
+          <LogoA size={22}/>
+          <div style={{width:1,height:20,background:'var(--bd)',margin:'0 4px'}}/>
+          <span className="tb-title">{topTitle()}</span>
         </div>
-
-        {/* Content */}
-        {isChat
-          ? <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}><Forense /></div>
-          : <div className="page-scroll">{pages[screen] || pages.overview}</div>
-        }
-
-        {/* Mobile bottom tabs */}
+        <div className="page-scroll">{renderPage()}</div>
+        {/* Mobile tabs */}
         <div className="m-tabs">
-          {mobileTabs.map(t => (
-            <button key={t.id} className={`m-tab ${screen === t.id ? 'on' : ''}`} onClick={() => setScreen(t.id)}>
-              <span style={{ display: 'flex', justifyContent: 'center' }}>
-                {I[t.icon] ? I[t.icon](20) : I.overview(20)}
-              </span>
+          {mobileTabs.map(t=>(
+            <button key={t.id} className={`m-tab ${screen===t.id?'on':''}`} onClick={()=>setScreen(t.id)}>
+              <t.Ic size={20} stroke={screen===t.id?2.2:1.6} style={{color:screen===t.id?'var(--primary)':'var(--ink3)'}}/>
               {t.lbl}
             </button>
           ))}
@@ -1236,7 +978,7 @@ const App = () => {
   );
 };
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
