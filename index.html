@@ -1,1044 +1,512 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Contábil — Conciliação com IA</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    /* ── Reset & Base ─────────────────────────────── */
-    :root {
-      --bg:#FAFAF7;--bg-elev:#FFFFFF;--bg-sunken:#F4F3EE;
-      --ink:#18181B;--ink-2:#3F3F46;--ink-3:#71717A;--ink-4:#A1A1AA;
-      --line:#E7E5E0;--line-2:#EDEBE5;
-      --ok-50:oklch(0.96 0.04 155);--ok-100:oklch(0.92 0.08 155);
-      --ok-500:oklch(0.58 0.14 155);--ok-700:oklch(0.42 0.12 155);
-      --warn-50:oklch(0.96 0.05 70);--warn-100:oklch(0.92 0.11 70);
-      --warn-500:oklch(0.68 0.16 70);--warn-700:oklch(0.48 0.14 60);
-      --risk-50:oklch(0.96 0.03 25);--risk-100:oklch(0.92 0.08 25);
-      --risk-500:oklch(0.58 0.17 25);--risk-700:oklch(0.45 0.16 25);
-      --info-50:oklch(0.96 0.03 240);--info-100:oklch(0.92 0.06 240);
-      --info-500:oklch(0.55 0.14 240);--info-700:oklch(0.42 0.14 240);
-      --violet-100:oklch(0.92 0.06 295);--violet-500:oklch(0.55 0.16 295);
-      --radius-sm:8px;--radius:12px;--radius-lg:16px;--radius-xl:20px;
-    }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    html,body{width:100%;height:100%;font-family:'Inter',-apple-system,sans-serif;
-      font-feature-settings:'ss01','cv11','tnum';-webkit-font-smoothing:antialiased;
-      color:var(--ink);background:#1a1a1e;overflow:hidden;}
-    #root{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-
-    /* ── Phone shell ─────────────────────────────── */
-    .phone-shell{
-      width:390px;height:844px;background:var(--bg);
-      border-radius:50px;overflow:hidden;position:relative;
-      box-shadow:0 0 0 8px #2a2a2e,0 0 0 10px #111,0 40px 80px rgba(0,0,0,0.7);
-    }
-    @media(max-width:420px){
-      .phone-shell{width:100vw;height:100dvh;border-radius:0;box-shadow:none;}
-      #root{background:var(--bg);}
-    }
-
-    /* ── App layout ───────────────────────────────── */
-    .app{width:100%;height:100%;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;font-size:14px;letter-spacing:-0.01em;}
-    .scroll{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
-    .scroll::-webkit-scrollbar{display:none;}
-
-    /* ── Typography ───────────────────────────────── */
-    .h1{font-size:28px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;}
-    .h2{font-size:22px;font-weight:600;letter-spacing:-0.025em;line-height:1.15;}
-    .h3{font-size:17px;font-weight:600;letter-spacing:-0.02em;line-height:1.2;}
-    .label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);}
-    .mono{font-family:'JetBrains Mono','SF Mono',monospace;font-variant-numeric:tabular-nums;}
-    .num{font-variant-numeric:tabular-nums;}
-
-    /* ── TopBar ───────────────────────────────────── */
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 8px;background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0;}
-    .topbar .title{font-size:17px;font-weight:600;letter-spacing:-0.02em;}
-    .icon-btn{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--ink-2);cursor:pointer;}
-    .icon-btn:hover{background:var(--bg-sunken);}
-
-    /* ── TabBar ───────────────────────────────────── */
-    .tabbar{display:flex;justify-content:space-around;align-items:center;padding:8px 12px 18px;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-top:1px solid var(--line);flex-shrink:0;}
-    .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:10px;min-width:54px;color:var(--ink-4);font-size:10px;font-weight:500;background:transparent;border:none;cursor:pointer;transition:color .15s;}
-    .tab.active{color:var(--ink);}
-    .tab-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:1px;}
-    .tab.active .tab-dot{background:var(--ink);}
-
-    /* ── Cards & Rows ─────────────────────────────── */
-    .card{background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;}
-    .card-pad{padding:16px;}
-    .row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line-2);}
-    .row:last-child{border-bottom:none;}
-    .row-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg-sunken);color:var(--ink-3);}
-    .row-icon.ok{background:var(--ok-50);color:var(--ok-700);}
-    .row-icon.warn{background:var(--warn-50);color:var(--warn-700);}
-    .row-icon.risk{background:var(--risk-50);color:var(--risk-700);}
-    .row-icon.info{background:var(--info-50);color:var(--info-700);}
-    .row-icon.violet{background:var(--violet-100);color:var(--violet-500);}
-    .row-main{flex:1;min-width:0;}
-    .row-title{font-size:14px;font-weight:500;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .row-sub{font-size:12px;color:var(--ink-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .row-amount{font-size:14px;font-weight:500;color:var(--ink);}
-    .row-amount.pos{color:var(--ok-700);}
-    .section-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);padding:16px 20px 8px;}
-
-    /* ── Pills & Dots ─────────────────────────────── */
-    .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:500;background:var(--bg-sunken);color:var(--ink-3);border:1px solid var(--line);}
-    .pill-ok{background:var(--ok-50);color:var(--ok-700);border-color:var(--ok-100);}
-    .pill-warn{background:var(--warn-50);color:var(--warn-700);border-color:var(--warn-100);}
-    .pill-risk{background:var(--risk-50);color:var(--risk-700);border-color:var(--risk-100);}
-    .pill-info{background:var(--info-50);color:var(--info-700);border-color:var(--info-100);}
-    .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-4);flex-shrink:0;}
-    .dot-ok{background:var(--ok-500);}
-    .dot-warn{background:var(--warn-500);}
-    .dot-risk{background:var(--risk-500);}
-    .dot-info{background:var(--info-500);}
-
-    /* ── Buttons ──────────────────────────────────── */
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--radius);border:1px solid var(--line);background:var(--bg-elev);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;letter-spacing:-0.01em;transition:background .1s;}
-    .btn:hover{background:var(--bg-sunken);}
-    .btn-primary{background:var(--ink);color:#fff;border-color:var(--ink);}
-    .btn-primary:hover{background:#2a2a2e;}
-    .btn-ok{background:var(--ok-500);color:#fff;border-color:var(--ok-500);}
-    .btn-sm{padding:6px 10px;font-size:12px;}
-    .btn-block{width:100%;}
-    .flex-1{flex:1;}
-
-    /* ── Progress ─────────────────────────────────── */
-    .progress{height:5px;background:var(--line);border-radius:100px;overflow:hidden;}
-    .progress-bar{height:100%;background:var(--ok-500);border-radius:100px;transition:width .3s;}
-
-    /* ── Chat messages ────────────────────────────── */
-    .msg{padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;max-width:85%;}
-    .msg-user{background:var(--ink);color:#fff;border-bottom-right-radius:4px;}
-    .msg-assistant{background:var(--bg-sunken);color:var(--ink);border-bottom-left-radius:4px;}
-    .agent-avatar{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
-    .pulse-dot{width:5px;height:5px;border-radius:50%;background:var(--ink-3);animation:pulse-scale .9s ease-in-out infinite;}
-    .pulse-dot:nth-child(2){animation-delay:.15s;}
-    .pulse-dot:nth-child(3){animation-delay:.3s;}
-
-    /* ── Login screen ─────────────────────────────── */
-    .login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px 32px;gap:0;}
-    .login-input{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-elev);font-size:15px;color:var(--ink);outline:none;font-family:inherit;}
-    .login-input:focus{border-color:var(--ink);}
-    .login-error{background:var(--risk-50);color:var(--risk-700);border:1px solid var(--risk-100);border-radius:var(--radius);padding:10px 14px;font-size:13px;width:100%;}
-
-    /* ── Upload dropzone ──────────────────────────── */
-    .dropzone{border:1.5px dashed var(--line);border-radius:var(--radius-lg);padding:28px 20px;text-align:center;background:repeating-linear-gradient(45deg,#FBFAF6 0 10px,#FAFAF7 10px 20px);cursor:pointer;transition:border-color .15s;}
-    .dropzone:hover,.dropzone.drag{border-color:var(--ink);}
-
-    /* ── Sheet ────────────────────────────────────── */
-    .sheet{background:var(--bg-elev);border-radius:24px 24px 0 0;border-top:1px solid var(--line);}
-
-    /* ── Animations ───────────────────────────────── */
-    @keyframes pulse-scale{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.4);opacity:1}}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-    .fade-in{animation:fade-in .2s ease both;}
-
-    /* ── Loading spinner ──────────────────────────── */
-    .spinner{width:20px;height:20px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Contabil - Conciliacao com IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{--bg:#F7F6F2;--sf:#FFF;--sf2:#F0EFE9;--bd:#E2E0D8;--bd2:#ECEAE3;--ink:#1C1C1F;--ink2:#44444A;--ink3:#78787F;--ink4:#ACACB2;--ok:#2D7D52;--okb:#EBF5EE;--okbd:#C3E0CE;--wn:#92600A;--wnb:#FEF3E2;--wnbd:#F5D9A0;--rk:#C0392B;--rkb:#FDECEA;--rkbd:#F5C0BB;--in:#1A5EA8;--inb:#EAF1FC;--inbd:#BAD1F5;--sw:240px;--r:10px;--rl:14px;--sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg);overflow:hidden;}
+#root{width:100%;height:100%;}
+.layout{display:flex;width:100%;height:100%;}
+.main{flex:1;height:100%;overflow:hidden;display:flex;flex-direction:column;min-width:0;}
+.mscroll{flex:1;overflow-y:auto;}
+.page{padding:32px 36px;max-width:1200px;width:100%;}
+.sidebar{width:var(--sw);flex-shrink:0;height:100%;background:var(--ink);display:flex;flex-direction:column;}
+.slogo{display:flex;align-items:center;gap:10px;padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);}
+.smark{width:32px;height:32px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.snav{padding:14px 12px 4px;}
+.snlbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:0 8px;margin-bottom:4px;}
+.sitem{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:500;color:rgba(255,255,255,.55);transition:background .12s,color .12s;border:none;background:transparent;width:100%;text-align:left;}
+.sitem:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);}
+.sitem.on{background:rgba(255,255,255,.12);color:#fff;}
+.sbadge{margin-left:auto;font-size:10px;font-weight:700;background:var(--rk);color:#fff;padding:2px 7px;border-radius:100px;}
+.sbot{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.08);}
+.suser{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .12s;}
+.suser:hover{background:rgba(255,255,255,.07);}
+.av{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.mh{display:none;align-items:center;gap:12px;padding:12px 16px;background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.mt{display:none;justify-content:space-around;padding:8px 0 16px;background:var(--sf);border-top:1px solid var(--bd);flex-shrink:0;}
+.mtab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 14px;font-size:10px;font-weight:500;color:var(--ink3);border:none;background:transparent;cursor:pointer;font-family:inherit;}
+.mtab.on{color:var(--ink);}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+.pt{font-size:26px;font-weight:700;letter-spacing:-.04em;}
+.ps{font-size:14px;color:var(--ink3);margin-top:3px;}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.sc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:20px;box-shadow:var(--sh);position:relative;overflow:hidden;}
+.scacc{position:absolute;top:0;left:0;width:3px;height:100%;}
+.scl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);}
+.scv{font-size:24px;font-weight:700;letter-spacing:-.04em;margin-top:8px;font-variant-numeric:tabular-nums;}
+.scs{font-size:12px;color:var(--ink3);margin-top:4px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);}
+.ch{padding:14px 20px;border-bottom:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;}
+.ct{font-size:13px;font-weight:600;}
+.cb{padding:20px;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);padding:10px 16px;text-align:left;border-bottom:1px solid var(--bd2);background:var(--sf2);white-space:nowrap;}
+.tbl td{padding:11px 16px;border-bottom:1px solid var(--bd2);font-size:13px;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--sf2);}
+.mono{font-family:'DM Mono',monospace;font-variant-numeric:tabular-nums;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600;}
+.bok{background:var(--okb);color:var(--ok);border:1px solid var(--okbd);}
+.bwn{background:var(--wnb);color:var(--wn);border:1px solid var(--wnbd);}
+.brk{background:var(--rkb);color:var(--rk);border:1px solid var(--rkbd);}
+.bin{background:var(--inb);color:var(--in);border:1px solid var(--inbd);}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dok{background:var(--ok);} .dwn{background:var(--wn);} .drk{background:var(--rk);} .din{background:var(--in);}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);border:1px solid var(--bd);background:var(--sf);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .12s;letter-spacing:-.01em;white-space:nowrap;}
+.btn:hover{background:var(--sf2);}
+.btn.pr{background:var(--ink);color:#fff;border-color:var(--ink);}
+.btn.pr:hover{background:#2d2d30;}
+.btn.sm{padding:6px 12px;font-size:12px;}
+.btn.gh{background:transparent;border-color:transparent;}
+.btn.gh:hover{background:var(--sf2);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.inp{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:var(--r);background:var(--sf);font-size:14px;color:var(--ink);font-family:inherit;outline:none;transition:border-color .12s;}
+.inp:focus{border-color:var(--ink);}
+.ftabs{display:flex;gap:3px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;}
+.ftab{padding:6px 14px;border-radius:7px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border:none;background:transparent;font-family:inherit;transition:all .12s;}
+.ftab.on{background:var(--sf);color:var(--ink);box-shadow:var(--sh);}
+.prog{height:6px;background:var(--bd);border-radius:100px;overflow:hidden;}
+.progb{height:100%;border-radius:100px;transition:width .4s;}
+.chat-layout{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.chat-msgs{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:12px;}
+.mrow{display:flex;gap:10px;align-items:flex-start;}
+.mrow.me{flex-direction:row-reverse;}
+.bubble{padding:11px 15px;border-radius:14px;font-size:13.5px;line-height:1.55;max-width:620px;}
+.bubble.ai{background:var(--sf);border:1px solid var(--bd);color:var(--ink);border-bottom-left-radius:4px;}
+.bubble.me{background:var(--ink);color:#fff;border-bottom-right-radius:4px;}
+.agav{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.pulse{width:5px;height:5px;border-radius:50%;background:var(--ink3);animation:pulse .9s ease-in-out infinite;}
+.pulse:nth-child(2){animation-delay:.15s;} .pulse:nth-child(3){animation-delay:.3s;}
+.cbar{padding:14px 24px 20px;border-top:1px solid var(--bd);background:var(--sf);display:flex;gap:10px;flex-shrink:0;}
+.lpg{width:100%;height:100%;display:flex;}
+.ll{flex:1;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;}
+.lr{width:480px;display:flex;align-items:center;justify-content:center;padding:60px;background:var(--bg);}
+.lform{width:100%;max-width:360px;}
+.lfield{margin-bottom:14px;}
+.llbl{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px;display:block;}
+.lerr{background:var(--rkb);border:1px solid var(--rkbd);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--rk);margin-bottom:14px;}
+.dz{border:2px dashed var(--bd);border-radius:var(--rl);padding:48px 32px;text-align:center;cursor:pointer;transition:all .15s;background:var(--sf);}
+.dz:hover,.dz.drag{border-color:var(--ink);background:var(--sf2);}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:768px){
+  .sidebar{display:none;} .mh{display:flex;} .mt{display:flex;}
+  .page{padding:16px;} .sg{grid-template-columns:1fr 1fr;gap:10px;} .scv{font-size:20px;} .pt{font-size:20px;}
+  .ll{display:none;} .lr{width:100%;padding:32px 24px;}
+  .chat-msgs{padding:16px;} .cbar{padding:12px 16px 18px;}
+  .twocol{grid-template-columns:1fr !important;}
+}
+@media(max-width:420px){.sg{grid-template-columns:1fr;}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.5);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fup{animation:fup .22s ease both;}
+.spin{width:18px;height:18px;border:2.5px solid var(--bd);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+</style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-// ══════════════════════════════════════════════════
-// CONFIG — IP da sua VPS
-// ══════════════════════════════════════════════════
-const API_BASE = 'https://wheels-concentrate-manuals-cubic.trycloudflare.com';
-
-// ── API helper ────────────────────────────────────
+const API = 'https://wheels-concentrate-manuals-cubic.trycloudflare.com';
 const api = {
-  token: localStorage.getItem('contabil_token'),
-  async req(method, path, body) {
-    const headers = { 'Content-Type': 'application/json' };
-    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
-    const res = await fetch(API_BASE + path, {
-      method, headers, body: body ? JSON.stringify(body) : undefined
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erro na requisição');
-    return data;
+  token: localStorage.getItem('ct'),
+  async r(m,p,b){
+    const h={'Content-Type':'application/json'};
+    if(this.token) h['Authorization']=`Bearer ${this.token}`;
+    const res=await fetch(API+p,{method:m,headers:h,body:b?JSON.stringify(b):undefined});
+    const d=await res.json();
+    if(!res.ok) throw new Error(d.error||'Erro');
+    return d;
   },
-  get: (p) => api.req('GET', p),
-  post: (p, b) => api.req('POST', p, b),
-  patch: (p, b) => api.req('PATCH', p, b),
-  delete: (p) => api.req('DELETE', p),
+  get:p=>api.r('GET',p),
+  post:(p,b)=>api.r('POST',p,b),
+  patch:(p,b)=>api.r('PATCH',p,b),
+  del:p=>api.r('DELETE',p),
+};
+const BRL=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(n||0);
+const fdt=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}catch{return d}};
+const {useState,useEffect,useRef}=React;
+
+const Ico=({children,size=16,stroke=1.8,style})=>(
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={style}>{children}</svg>
+);
+const I={
+  home:p=><Ico {...p}><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></Ico>,
+  txs:p=><Ico {...p}><path d="M3 3v18h18"/><path d="M7 16l4-4 4 3 5-7"/></Ico>,
+  bell:p=><Ico {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></Ico>,
+  up:p=><Ico {...p}><path d="M12 15V3m-5 5 5-5 5 5M20 21H4"/></Ico>,
+  chat:p=><Ico {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></Ico>,
+  rep:p=><Ico {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></Ico>,
+  ok:p=><Ico {...p}><path d="M20 6 9 17l-5-5"/></Ico>,
+  x:p=><Ico {...p}><path d="M18 6 6 18M6 6l12 12"/></Ico>,
+  send:p=><Ico {...p}><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></Ico>,
+  out:p=><Ico {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></Ico>,
+  ref:p=><Ico {...p}><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></Ico>,
+  dl:p=><Ico {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-5 5 5 5-5M12 15V3"/></Ico>,
+  sh:p=><Ico {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></Ico>,
+  pl:p=><Ico {...p}><path d="M12 5v14M5 12h14"/></Ico>,
 };
 
-// ── Formatters ────────────────────────────────────
-const BRL = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n || 0);
-const fmtDate = (d) => { try { return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }); } catch { return d; }};
+const Spin=()=><div className="spin"/>;
+const Mark=()=>(<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 13.5l3 3 7-7" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>);
 
-// ══════════════════════════════════════════════════
-// ICONS
-// ══════════════════════════════════════════════════
-const { useState, useEffect, useRef, useCallback } = React;
-const Icon = ({ d, size=18, stroke=1.75, children, style, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color||"currentColor"}
-       strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={style}>
-    {children || <path d={d}/>}
-  </svg>
-);
-const I = {
-  home:     (p) => <Icon {...p}><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1v-9.5Z"/></Icon>,
-  inbox:    (p) => <Icon {...p}><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></Icon>,
-  sparkle:  (p) => <Icon {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></Icon>,
-  chart:    (p) => <Icon {...p}><path d="M3 3v18h18"/><path d="M7 16l4-4 4 3 5-7"/></Icon>,
-  bell:     (p) => <Icon {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></Icon>,
-  chevR:    (p) => <Icon {...p}><path d="m9 6 6 6-6 6"/></Icon>,
-  chevL:    (p) => <Icon {...p}><path d="m15 6-6 6 6 6"/></Icon>,
-  chevD:    (p) => <Icon {...p}><path d="m6 9 6 6 6-6"/></Icon>,
-  check:    (p) => <Icon {...p}><path d="M20 6 9 17l-5-5"/></Icon>,
-  x:        (p) => <Icon {...p}><path d="M18 6 6 18M6 6l12 12"/></Icon>,
-  alert:    (p) => <Icon {...p}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></Icon>,
-  shield:   (p) => <Icon {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></Icon>,
-  doc:      (p) => <Icon {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></Icon>,
-  bank:     (p) => <Icon {...p}><path d="M3 21h18M3 10h18M5 6l7-4 7 4M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></Icon>,
-  upload:   (p) => <Icon {...p}><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 21H4"/></Icon>,
-  send:     (p) => <Icon {...p}><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></Icon>,
-  settings: (p) => <Icon {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></Icon>,
-  search:   (p) => <Icon {...p}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></Icon>,
-  receipt:  (p) => <Icon {...p}><path d="M4 2v20l3-2 3 2 3-2 3 2 3-2 3 2V2l-3 2-3-2-3 2-3-2-3 2-3-2Z"/><path d="M8 8h8M8 12h8M8 16h5"/></Icon>,
-  refresh:  (p) => <Icon {...p}><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></Icon>,
-  download: (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></Icon>,
-  more:     (p) => <Icon {...p}><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></Icon>,
-  filter:   (p) => <Icon {...p}><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z"/></Icon>,
-  plus:     (p) => <Icon {...p}><path d="M12 5v14M5 12h14"/></Icon>,
-  flag:     (p) => <Icon {...p}><path d="M4 21V4h12l-2 5 2 5H4"/></Icon>,
-  wallet:   (p) => <Icon {...p}><path d="M20 12V8a2 2 0 0 0-2-2H4v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M22 12h-4a2 2 0 0 0 0 4h4"/></Icon>,
-  logout:   (p) => <Icon {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></Icon>,
+const Donut=({pct=0,size=120,stroke=11})=>{
+  const r=(size-stroke)/2,c=2*Math.PI*r,dash=(pct/100)*c;
+  return(<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bd)" strokeWidth={stroke}/>
+    <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--ok)" strokeWidth={stroke} strokeDasharray={`${dash} ${c}`} strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} style={{transition:'stroke-dasharray .5s'}}/>
+    <text x={size/2} y={size/2-2} textAnchor="middle" dominantBaseline="central" style={{fontSize:size*.22,fontWeight:700,fill:'var(--ink)',fontFamily:'DM Sans'}}> {pct}%</text>
+    <text x={size/2} y={size/2+size*.17} textAnchor="middle" dominantBaseline="central" style={{fontSize:size*.075,fill:'var(--ink3)',fontFamily:'DM Sans',fontWeight:500,letterSpacing:'0.06em'}}> CONCILIADO</text>
+  </svg>);
 };
 
-// ══════════════════════════════════════════════════
-// SHARED COMPONENTS
-// ══════════════════════════════════════════════════
-const TopBar = ({ title, left, right, sub }) => (
-  <div className="topbar" style={{ flexDirection: 'column', gap: 0, padding: '10px 16px 12px' }}>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <div style={{ width: 34, display: 'flex' }}>{left}</div>
-      <div className="title">{title}</div>
-      <div style={{ width: 34, display: 'flex', justifyContent: 'flex-end' }}>{right}</div>
-    </div>
-    {sub && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>{sub}</div>}
-  </div>
-);
-
-const TabBar = ({ active, onNav }) => {
-  const tabs = [
-    { id: 'dashboard', label: 'Início', Icon: I.home },
-    { id: 'upload',    label: 'Documentos', Icon: I.inbox },
-    { id: 'chat',      label: 'Agente', Icon: I.sparkle },
-    { id: 'report',    label: 'Relatório', Icon: I.chart },
+const Sidebar=({cur,go,user,logout,na})=>{
+  const items=[
+    {id:'dashboard',lbl:'Dashboard',Ic:I.home},
+    {id:'transactions',lbl:'Lancamentos',Ic:I.txs},
+    {id:'alerts',lbl:'Alertas',Ic:I.bell,badge:na},
+    {id:'upload',lbl:'Documentos',Ic:I.up},
+    {id:'chat',lbl:'Agente IA',Ic:I.chat},
+    {id:'report',lbl:'Relatorio',Ic:I.rep},
   ];
-  return (
-    <div className="tabbar">
-      {tabs.map(t => (
-        <button key={t.id} className={`tab ${active === t.id ? 'active' : ''}`} onClick={() => onNav(t.id)}>
-          <t.Icon size={22}/>
-          <span>{t.label}</span>
-          <span className="tab-dot"/>
-        </button>
-      ))}
+  return(<nav className="sidebar">
+    <div className="slogo">
+      <div className="smark"><Mark/></div>
+      <div>
+        <div style={{fontSize:16,fontWeight:700,letterSpacing:'-.03em',color:'#fff'}}>Contabil</div>
+        <div style={{fontSize:10,color:'rgba(255,255,255,.35)',marginTop:1}}>Conciliacao com IA</div>
+      </div>
     </div>
-  );
+    <div className="snav">
+      <div className="snlbl">Menu</div>
+      {items.map(it=>(<button key={it.id} className={`sitem ${cur===it.id?'on':''}`} onClick={()=>go(it.id)}>
+        <it.Ic size={15} stroke={cur===it.id?2.2:1.8}/>
+        {it.lbl}
+        {it.badge>0&&<span className="sbadge">{it.badge}</span>}
+      </button>))}
+    </div>
+    <div className="sbot">
+      <div className="suser" onClick={logout} title="Sair">
+        <div className="av">{user?.name?.[0]||'U'}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:500,color:'rgba(255,255,255,.8)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.name}</div>
+          <div style={{fontSize:11,color:'rgba(255,255,255,.3)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.email}</div>
+        </div>
+        <I.out size={13} style={{color:'rgba(255,255,255,.25)',flexShrink:0}}/>
+      </div>
+    </div>
+  </nav>);
 };
 
-const Donut = ({ pct = 0, size = 108, stroke = 10 }) => {
-  const r = (size - stroke) / 2, c = 2 * Math.PI * r, dash = (pct / 100) * c;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke}/>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--ok-500)" strokeWidth={stroke}
-              strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
-              transform={`rotate(-90 ${size/2} ${size/2})`} style={{ transition: 'stroke-dasharray .5s' }}/>
-      <text x={size/2} y={size/2 - 2} textAnchor="middle" dominantBaseline="central"
-            style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', fill: 'var(--ink)' }}>{pct}%</text>
-      <text x={size/2} y={size/2 + 20} textAnchor="middle" dominantBaseline="central"
-            style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.06em', fill: 'var(--ink-3)', textTransform: 'uppercase' }}>conciliado</text>
-    </svg>
-  );
+const MH=({cur})=>{
+  const t={dashboard:'Dashboard',transactions:'Lancamentos',alerts:'Alertas',upload:'Documentos',chat:'Agente IA',report:'Relatorio'};
+  return(<div className="mh">
+    <div style={{width:28,height:28,borderRadius:8,background:'var(--ink)',display:'flex',alignItems:'center',justifyContent:'center'}}><Mark/></div>
+    <span style={{fontWeight:600,fontSize:16,letterSpacing:'-.02em'}}>{t[cur]}</span>
+  </div>);
+};
+const MTabs=({cur,go,na})=>{
+  const tabs=[{id:'dashboard',lbl:'Inicio',Ic:I.home},{id:'transactions',lbl:'Lancamentos',Ic:I.txs},{id:'alerts',lbl:'Alertas',Ic:I.bell},{id:'chat',lbl:'Agente',Ic:I.chat},{id:'report',lbl:'Relatorio',Ic:I.rep}];
+  return(<div className="mt">{tabs.map(t=>(<button key={t.id} className={`mtab ${cur===t.id?'on':''}`} onClick={()=>go(t.id)}><t.Ic size={20} stroke={cur===t.id?2.2:1.8}/><span>{t.lbl}</span></button>))}</div>);
 };
 
-const StatusPill = ({ kind, label }) => {
-  const map = { ok: 'pill-ok', warn: 'pill-warn', risk: 'pill-risk', info: 'pill-info' };
-  return <span className={`pill ${map[kind] || ''}`}><span className={`dot dot-${kind}`}/>{label || kind}</span>;
-};
-
-const Spinner = () => <div className="spinner"/>;
-
-// ══════════════════════════════════════════════════
-// LOGIN SCREEN
-// ══════════════════════════════════════════════════
-const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('demo@contabil.app');
-  const [password, setPassword] = useState('demo123');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleLogin = async () => {
-    setLoading(true); setError('');
-    try {
-      const data = await api.post('/auth/login', { email, password });
-      api.token = data.token;
-      localStorage.setItem('contabil_token', data.token);
-      onLogin(data.user);
-    } catch (e) {
-      setError(e.message || 'Erro ao conectar com o servidor');
-    } finally { setLoading(false); }
+const Login=({onLogin})=>{
+  const [email,setEmail]=useState('demo@contabil.app');
+  const [pass,setPass]=useState('demo123');
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
+  const submit=async()=>{
+    setLoading(true);setErr('');
+    try{const d=await api.post('/auth/login',{email,password:pass});api.token=d.token;localStorage.setItem('ct',d.token);onLogin(d.user);}
+    catch(e){setErr(e.message);}finally{setLoading(false);}
   };
-
-  return (
-    <div className="app">
-      <div className="login-wrap">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 20 }}>
-          <rect x="2" y="2" width="20" height="20" rx="6" fill="var(--ink)"/>
-          <path d="M7 13.5l3 3 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <div className="h2" style={{ marginBottom: 6 }}>Contábil</div>
-        <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 32, textAlign: 'center' }}>
-          Conciliação contábil com IA
+  return(<div className="lpg">
+    <div className="ll">
+      <div style={{textAlign:'center',maxWidth:340}}>
+        <div style={{width:60,height:60,borderRadius:16,background:'rgba(255,255,255,.1)',border:'1px solid rgba(255,255,255,.12)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 22px'}}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M7 13.5l3 3 7-7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
-
-        {error && <div className="login-error" style={{ marginBottom: 12 }}>{error}</div>}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginBottom: 16 }}>
-          <input className="login-input" type="email" placeholder="Email" value={email}
-            onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()}/>
-          <input className="login-input" type="password" placeholder="Senha" value={password}
-            onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()}/>
-        </div>
-
-        <button className="btn btn-primary btn-block" style={{ padding: 14 }} onClick={handleLogin} disabled={loading}>
-          {loading ? <Spinner/> : 'Entrar'}
-        </button>
-
-        <div style={{ marginTop: 20, padding: '10px 14px', background: 'var(--bg-sunken)', borderRadius: 10, fontSize: 12, color: 'var(--ink-3)', width: '100%' }}>
-          <strong style={{ color: 'var(--ink)' }}>Demo:</strong> demo@contabil.app / demo123
-        </div>
-
-        <div style={{ marginTop: 16, fontSize: 11, color: 'var(--ink-4)', textAlign: 'center' }}>
-          Conectado em: {API_BASE}
+        <div style={{fontSize:30,fontWeight:700,letterSpacing:'-.05em',color:'#fff',marginBottom:10}}>Contabil</div>
+        <div style={{fontSize:14,color:'rgba(255,255,255,.45)',lineHeight:1.65}}>Conciliacao contabil automatizada com inteligencia artificial para empresas brasileiras.</div>
+        <div style={{marginTop:36,display:'flex',flexDirection:'column',gap:11,textAlign:'left'}}>
+          {['Conciliacao automatica com IA','Alertas de risco em tempo real','Chat com agente especializado','Relatorios e DRE gerencial'].map(f=>(<div key={f} style={{display:'flex',alignItems:'center',gap:10,color:'rgba(255,255,255,.65)',fontSize:13.5}}>
+            <div style={{width:20,height:20,borderRadius:6,background:'rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><I.ok size={12} stroke={2.5} style={{color:'rgba(255,255,255,.7)'}}/></div>{f}</div>))}
         </div>
       </div>
     </div>
-  );
-};
-
-// ══════════════════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════════════════
-const Dashboard = ({ onNav, onTx, onAlert }) => {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.get('/api/dashboard/stats?period=2026-11')
-      .then(setStats)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return (
-    <div className="app">
-      <TopBar title="Contábil" right={<button className="icon-btn"><I.settings size={20}/></button>}/>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner/></div>
-      <TabBar active="dashboard" onNav={onNav}/>
-    </div>
-  );
-
-  return (
-    <div className="app">
-      <TopBar title="Contábil" left={<button className="icon-btn"><I.settings size={20}/></button>}
-        right={<button className="icon-btn" style={{ position: 'relative' }} onClick={() => onNav('alerts')}>
-          <I.bell size={20}/>
-          {stats?.alertas_ativos > 0 && <span style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: '50%', background: 'var(--risk-500)', border: '2px solid #fff' }}/>}
-        </button>}/>
-
-      <div className="scroll">
-        {/* Period */}
-        <div style={{ padding: '16px 20px 8px' }}>
-          <div className="label">Período</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}>
-            <div className="h1">Novembro</div>
-            <div style={{ fontSize: 16, color: 'var(--ink-3)', fontWeight: 500 }}>2026</div>
-          </div>
-        </div>
-
-        {/* Hero donut */}
-        <div style={{ padding: '8px 20px 0' }}>
-          <div className="card" style={{ background: 'linear-gradient(180deg,#fff 0%,#FBFAF6 100%)' }}>
-            <div className="card-pad" style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-              <Donut pct={stats?.conciliadoPct || 0} size={108} stroke={10}/>
-              <div style={{ flex: 1 }}>
-                {[
-                  { dot: 'ok', label: 'Conciliado', val: stats?.conciliado },
-                  { dot: 'warn', label: 'Divergentes', val: stats?.divergentes },
-                  { dot: 'risk', label: 'Alertas de risco', val: stats?.riscos },
-                ].map(r => (
-                  <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                    <span className={`dot dot-${r.dot}`}/>
-                    <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>{r.label}</span>
-                    <span style={{ marginLeft: 'auto', fontWeight: 600, fontSize: 13 }}>{r.val ?? '—'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ borderTop: '1px solid var(--line-2)', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, background: '#FBFAF6', cursor: 'pointer' }} onClick={() => onNav('chat')}>
-              <span className="agent-avatar" style={{ width: 22, height: 22, fontSize: 10 }}>AI</span>
-              <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Agente revisou <b style={{ color: 'var(--ink)' }}>{stats?.total || 0} lançamentos</b></span>
-              <I.chevR size={14} color="var(--ink-3)" style={{ marginLeft: 'auto' }}/>
-            </div>
-          </div>
-        </div>
-
-        {/* Alerts highlight */}
-        {stats?.alertas_ativos > 0 && <>
-          <div className="section-label" style={{ display: 'flex', alignItems: 'center' }}>
-            <span>Requer sua atenção</span>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ink-2)', fontWeight: 500, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }} onClick={() => onNav('alerts')}>Ver tudo →</span>
-          </div>
-          <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div className="card" style={{ borderLeft: '3px solid var(--risk-500)', cursor: 'pointer' }} onClick={() => onNav('alerts')}>
-              <div className="row" style={{ padding: 14 }}>
-                <div className="row-icon risk"><I.alert size={18}/></div>
-                <div className="row-main">
-                  <div className="row-title">{stats?.riscos} alerta(s) de risco ativo(s)</div>
-                  <div className="row-sub">Requerem atenção imediata</div>
-                </div>
-                <I.chevR size={16} color="var(--ink-3)"/>
-              </div>
-            </div>
-          </div>
-        </>}
-
-        {/* Accounts */}
-        <div className="section-label">Contas conectadas</div>
-        <div style={{ padding: '0 20px' }}>
-          <div className="card">
-            {(stats?.contas || []).map(c => (
-              <div key={c.id} className="row">
-                <div className="row-icon" style={{ background: c.cor + '22', color: c.cor, fontWeight: 700, fontSize: 11 }}>{c.sigla}</div>
-                <div className="row-main">
-                  <div className="row-title">{c.nome.split(' — ')[0]}</div>
-                  <div className="row-sub mono">{c.nome.split(' — ')[1]}</div>
-                </div>
-                <div className="row-amount num">{BRL(c.saldo)}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick actions */}
-        <div style={{ padding: '16px 20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <button className="btn" style={{ padding: 14, flexDirection: 'column', gap: 6, alignItems: 'flex-start' }} onClick={() => onNav('upload')}>
-            <I.upload size={18}/><div style={{ fontSize: 13, fontWeight: 500 }}>Enviar documentos</div>
-          </button>
-          <button className="btn" style={{ padding: 14, flexDirection: 'column', gap: 6, alignItems: 'flex-start' }} onClick={() => onNav('chat')}>
-            <I.sparkle size={18}/><div style={{ fontSize: 13, fontWeight: 500 }}>Perguntar ao agente</div>
-          </button>
-        </div>
-
-        {/* Transactions quick view */}
-        <div className="section-label" style={{ display: 'flex', alignItems: 'center' }}>
-          <span>Lançamentos recentes</span>
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ink-2)', fontWeight: 500, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }} onClick={() => onNav('transactions')}>Ver todos →</span>
-        </div>
-        <TransactionsMini onTx={onTx}/>
-        <div style={{ height: 8 }}/>
+    <div className="lr">
+      <div className="lform">
+        <div style={{marginBottom:30}}><div style={{fontSize:24,fontWeight:700,letterSpacing:'-.04em'}}>Entrar</div><div style={{fontSize:14,color:'var(--ink3)',marginTop:5}}>Acesse sua conta para continuar</div></div>
+        {err&&<div className="lerr">{err}</div>}
+        <div className="lfield"><label className="llbl">Email</label><input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="seu@email.com"/></div>
+        <div className="lfield"><label className="llbl">Senha</label><input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="••••••••"/></div>
+        <button className="btn pr" style={{width:'100%',padding:'12px',marginTop:6,fontSize:14,justifyContent:'center'}} onClick={submit} disabled={loading}>{loading?<><Spin/>Entrando...</>:'Entrar'}</button>
+        <div style={{marginTop:18,padding:'11px 14px',background:'var(--sf2)',border:'1px solid var(--bd)',borderRadius:'var(--r)',fontSize:13,color:'var(--ink3)'}}><strong style={{color:'var(--ink)'}}>Demo:</strong> demo@contabil.app / demo123</div>
       </div>
-      <TabBar active="dashboard" onNav={onNav}/>
     </div>
-  );
+  </div>);
 };
 
-// Mini transaction list for dashboard
-const TransactionsMini = ({ onTx }) => {
-  const [txs, setTxs] = useState([]);
-  useEffect(() => {
-    api.get('/api/transactions?period=2026-11&limit=5')
-      .then(d => setTxs(d.transactions || []))
-      .catch(console.error);
-  }, []);
-  return (
-    <div style={{ padding: '0 20px' }}>
+const Dashboard=({go})=>{
+  const [stats,setStats]=useState(null);
+  const [txs,setTxs]=useState([]);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{
+    Promise.all([api.get('/api/dashboard/stats?period=2026-11'),api.get('/api/transactions?period=2026-11&limit=6')])
+    .then(([s,t])=>{setStats(s);setTxs(t.transactions||[]);}).catch(console.error).finally(()=>setLoading(false));
+  },[]);
+  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
+  const bm={ok:'bok',warn:'bwn',risk:'brk',pending:'bin'};
+  const lm={ok:'Conciliado',warn:'Divergencia',risk:'Risco',pending:'Pendente'};
+  return(<div className="page fup">
+    <div className="ph">
+      <div><div className="pt">Dashboard</div><div className="ps">Novembro 2026 - Periodo em andamento</div></div>
+      <button className="btn pr" onClick={()=>go('chat')}><I.chat size={14}/>Perguntar ao agente</button>
+    </div>
+    <div className="sg">
+      {[{l:'Saldo consolidado',v:BRL(stats?.saldo),s:'3 contas bancarias',a:'var(--ink)'},{l:'Conciliados',v:`${stats?.conciliado||0}`,s:`${stats?.conciliadoPct||0}% do periodo`,a:'var(--ok)'},{l:'Divergencias',v:`${stats?.divergentes||0}`,s:'Requerem revisao',a:'var(--wn)'},{l:'Alertas de risco',v:`${stats?.riscos||0}`,s:'Acao necessaria',a:'var(--rk)',click:()=>go('alerts')},].map(s=>(<div key={s.l} className="sc" onClick={s.click} style={{cursor:s.click?'pointer':'default'}}><div className="scacc" style={{background:s.a}}/><div className="scl">{s.l}</div><div className="scv">{s.v}</div><div className="scs">{s.s}</div></div>))}
+    </div>
+    <div className="twocol" style={{marginBottom:20}}>
       <div className="card">
-        {txs.slice(0, 5).map(t => (
-          <div key={t.id} className="row" style={{ cursor: 'pointer' }} onClick={() => onTx && onTx(t)}>
-            <div className={`row-icon ${t.status}`}>
-              {t.status === 'ok' && <I.check size={16}/>}
-              {(t.status === 'warn' || t.status === 'risk') && <I.alert size={16}/>}
-              {t.status === 'pending' && <I.more size={16}/>}
-            </div>
-            <div className="row-main">
-              <div className="row-title">{t.counterparty}</div>
-              <div className="row-sub">{t.category}</div>
-            </div>
-            <div className={`row-amount num ${t.amount > 0 ? 'pos' : ''}`}>
-              {t.amount > 0 ? '+' : ''}{BRL(t.amount)}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// ══════════════════════════════════════════════════
-// TRANSACTIONS SCREEN
-// ══════════════════════════════════════════════════
-const Transactions = ({ onNav, onBack }) => {
-  const [txs, setTxs] = useState([]);
-  const [filter, setFilter] = useState('todos');
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({});
-
-  useEffect(() => {
-    const status = filter === 'todos' ? '' : filter;
-    api.get(`/api/transactions?period=2026-11&status=${status}`)
-      .then(d => { setTxs(d.transactions || []); setStats({ total: d.total }); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [filter]);
-
-  const filterTabs = [
-    { id: 'todos', label: 'Todos' },
-    { id: 'conciliados', label: 'Conciliados', dot: 'ok' },
-    { id: 'divergentes', label: 'Divergentes', dot: 'warn' },
-    { id: 'riscos', label: 'Riscos', dot: 'risk' },
-  ];
-
-  return (
-    <div className="app">
-      <TopBar title="Lançamentos" sub={`Novembro · ${stats.total || 0} no período`}
-        left={<button className="icon-btn" onClick={onBack}><I.chevL size={20}/></button>}
-        right={<button className="icon-btn"><I.search size={20}/></button>}/>
-
-      <div style={{ display: 'flex', gap: 6, padding: '10px 16px 12px', borderBottom: '1px solid var(--line)', overflowX: 'auto' }}>
-        {filterTabs.map(t => (
-          <button key={t.id} onClick={() => setFilter(t.id)} style={{
-            padding: '7px 12px', borderRadius: 100, border: '1px solid var(--line)',
-            background: filter === t.id ? 'var(--ink)' : 'var(--bg-elev)',
-            color: filter === t.id ? '#fff' : 'var(--ink-2)',
-            fontSize: 12, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6,
-            whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
-          }}>
-            {t.dot && <span className={`dot dot-${t.dot}`} style={{ background: filter === t.id ? '#fff' : undefined }}/>}
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="scroll">
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spinner/></div>
-        ) : (
-          <div style={{ padding: '4px 20px 24px' }}>
-            {txs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-3)' }}>Nenhuma transação encontrada</div>
-            ) : (
-              <div className="card" style={{ marginTop: 16 }}>
-                {txs.map(t => (
-                  <div key={t.id} className="row">
-                    <div className={`row-icon ${t.status === 'pending' ? '' : t.status}`}>
-                      {t.status === 'ok' && <I.check size={16}/>}
-                      {(t.status === 'warn' || t.status === 'risk') && <I.alert size={16}/>}
-                      {t.status === 'pending' && <I.more size={16}/>}
-                    </div>
-                    <div className="row-main">
-                      <div className="row-title">{t.counterparty}</div>
-                      <div className="row-sub">{t.description?.substring(0, 40)}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className={`row-amount num ${t.amount > 0 ? 'pos' : ''}`}>
-                        {t.amount > 0 ? '+' : ''}{BRL(t.amount)}
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 2 }}>{fmtDate(t.date)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      <TabBar active="dashboard" onNav={onNav}/>
-    </div>
-  );
-};
-
-// ══════════════════════════════════════════════════
-// ALERTS SCREEN
-// ══════════════════════════════════════════════════
-const Alerts = ({ onNav, onBack }) => {
-  const [alerts, setAlerts] = useState([]);
-  const [exposure, setExposure] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.get('/api/alerts?resolved=false')
-      .then(d => { setAlerts(d.alerts || []); setExposure(d.risk_exposure || 0); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  const resolve = async (id) => {
-    try {
-      await api.patch(`/api/alerts/${id}/resolve`, { resolution_note: 'Resolvido pelo usuário' });
-      setAlerts(prev => prev.filter(a => a.id !== id));
-    } catch (e) { alert(e.message); }
-  };
-
-  const ignore = async (id) => {
-    try {
-      await api.patch(`/api/alerts/${id}/ignore`);
-      setAlerts(prev => prev.filter(a => a.id !== id));
-    } catch (e) { alert(e.message); }
-  };
-
-  return (
-    <div className="app">
-      <TopBar title="Alertas de risco" sub={`${alerts.length} ativos`}
-        left={<button className="icon-btn" onClick={onBack}><I.chevL size={20}/></button>}
-        right={<button className="icon-btn"><I.filter size={20}/></button>}/>
-
-      <div className="scroll">
-        {/* Exposure card */}
-        <div style={{ padding: '16px 20px 0' }}>
-          <div className="card" style={{ background: 'linear-gradient(180deg,var(--risk-50) 0%,#FBFAF6 80%)', border: '1px solid var(--risk-100)' }}>
-            <div className="card-pad" style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: '1px solid var(--risk-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--risk-500)' }}>
-                <I.shield size={24}/>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-0.02em' }}>Exposição potencial</div>
-                <div className="num" style={{ fontSize: 20, fontWeight: 600, color: 'var(--risk-700)', marginTop: 2 }}>{BRL(exposure)}</div>
-                <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>em {alerts.length} lançamentos sem lastro</div>
-              </div>
+        <div className="ch"><div className="ct">Conciliacao do periodo</div><button className="btn sm" onClick={()=>go('transactions')}><I.txs size={12}/>Ver lancamentos</button></div>
+        <div className="cb">
+          <div style={{display:'flex',alignItems:'center',gap:28}}>
+            <Donut pct={stats?.conciliadoPct||0} size={120}/>
+            <div style={{display:'flex',flexDirection:'column',gap:11}}>
+              {[{d:'dok',l:'Conciliados',v:stats?.conciliado},{d:'dwn',l:'Divergentes',v:stats?.divergentes},{d:'drk',l:'Riscos',v:stats?.riscos},{d:'din',l:'Pendentes',v:stats?.pendentes}].map(r=>(<div key={r.l} style={{display:'flex',alignItems:'center',gap:8,fontSize:13}}><span className={`dot ${r.d}`}/><span style={{color:'var(--ink2)',flex:1}}>{r.l}</span><span style={{fontWeight:700,fontVariantNumeric:'tabular-nums'}}>{r.v??0}</span></div>))}
             </div>
           </div>
         </div>
-
-        <div className="section-label">Ativos</div>
-        <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}><Spinner/></div> :
-            alerts.length === 0 ? <div style={{ textAlign: 'center', padding: 30, color: 'var(--ink-3)' }}>✅ Nenhum alerta ativo</div> :
-            alerts.map(a => (
-              <div key={a.id} className="card fade-in" style={{ borderLeft: `3px solid var(--${a.level}-500)` }}>
-                <div style={{ padding: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <StatusPill kind={a.level} label={a.level === 'risk' ? 'Alto' : 'Médio'}/>
-                    <span style={{ fontSize: 11, color: 'var(--ink-4)', marginLeft: 'auto' }}>
-                      {new Date(a.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{a.title}</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>{a.subtitle}</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-2)', marginTop: 10, padding: '10px 12px', background: 'var(--bg-sunken)', borderRadius: 10, lineHeight: 1.5 }}>
-                    {a.detail}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
-                    <button className="btn btn-sm" onClick={() => ignore(a.id)}>Ignorar</button>
-                    <button className="btn btn-sm btn-primary" style={{ marginLeft: 'auto' }} onClick={() => resolve(a.id)}>
-                      <I.check size={14}/>Resolver
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          }
-        </div>
-        <div style={{ height: 20 }}/>
       </div>
-      <TabBar active="dashboard" onNav={onNav}/>
+      <div className="card">
+        <div className="ch"><div className="ct">Contas bancarias</div></div>
+        {(stats?.contas||[]).map(a=>(<div key={a.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 20px',borderBottom:'1px solid var(--bd2)'}}><div style={{width:36,height:36,borderRadius:9,background:a.cor+'22',color:a.cor,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:11,flexShrink:0}}>{a.sigla}</div><div style={{flex:1,minWidth:0}}><div style={{fontWeight:500,fontSize:13,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.nome.split(' - ')[0]}</div><div style={{fontSize:11,color:'var(--ink3)',fontFamily:'DM Mono'}}>{a.nome.split(' - ')[1]||a.nome.split(' - ')[0]}</div></div><div style={{fontWeight:600,fontSize:13,fontVariantNumeric:'tabular-nums'}}>{BRL(a.saldo)}</div></div>))}
+        <div style={{padding:'10px 20px',display:'flex',justifyContent:'space-between',fontSize:12,background:'var(--sf2)',borderTop:'1px solid var(--bd2)'}}><span style={{fontWeight:600,color:'var(--ink3)'}}>Total</span><span style={{fontWeight:700,fontVariantNumeric:'tabular-nums'}}>{BRL(stats?.saldo)}</span></div>
+      </div>
     </div>
-  );
+    <div className="card">
+      <div className="ch"><div className="ct">Lancamentos recentes</div><button className="btn sm" onClick={()=>go('transactions')}>Ver todos</button></div>
+      <div style={{overflowX:'auto'}}>
+        <table className="tbl">
+          <thead><tr><th>Favorecido</th><th>Categoria</th><th>Data</th><th style={{textAlign:'right'}}>Valor</th><th>Status</th></tr></thead>
+          <tbody>{txs.map(t=>(<tr key={t.id}><td style={{fontWeight:500}}>{t.counterparty}</td><td style={{color:'var(--ink3)'}}>{t.category}</td><td className="mono" style={{color:'var(--ink3)'}}>{fdt(t.date)}</td><td className="mono" style={{textAlign:'right',fontWeight:600,color:t.amount>0?'var(--ok)':undefined}}>{t.amount>0?'+':''}{BRL(t.amount)}</td><td><span className={`badge ${bm[t.status]||'bin'}`}><span className={`dot ${t.status==='pending'?'din':'d'+t.status[0]+t.status.slice(1,2)}`}/> {lm[t.status]||t.status}</span></td></tr>))}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>);
 };
 
-// ══════════════════════════════════════════════════
-// UPLOAD SCREEN
-// ══════════════════════════════════════════════════
-const Upload = ({ onNav }) => {
-  const [docs, setDocs] = useState([]);
-  const [dragging, setDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef();
-
-  useEffect(() => {
-    api.get('/api/upload').then(d => setDocs(d.documents || [])).catch(console.error);
-  }, []);
-
-  const uploadFiles = async (files) => {
-    setUploading(true);
-    const form = new FormData();
-    Array.from(files).forEach(f => form.append('files', f));
-    try {
-      const token = api.token;
-      const res = await fetch(API_BASE + '/api/upload', {
-        method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: form,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      const refreshed = await api.get('/api/upload');
-      setDocs(refreshed.documents || []);
-    } catch (e) { alert('Erro: ' + e.message); }
-    finally { setUploading(false); }
-  };
-
-  const statusColor = { done: 'var(--ok-500)', processing: 'var(--info-500)', error: 'var(--risk-500)', pending: 'var(--ink-4)' };
-  const statusLabel = { done: 'Lido', processing: 'Processando…', error: 'Erro', pending: 'Na fila' };
-
-  return (
-    <div className="app">
-      <TopBar title="Documentos"
-        left={<button className="icon-btn" onClick={() => onNav('dashboard')}><I.chevL size={20}/></button>}
-        right={<button className="icon-btn"><I.more size={20}/></button>}/>
-
-      <div className="scroll">
-        <div style={{ padding: '16px 20px 0' }}>
-          <div className="h2">Enviar para conciliação</div>
-          <div style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 4, lineHeight: 1.4 }}>
-            O agente lê e cruza automaticamente. Suporta PDF, OFX, XML e imagens.
-          </div>
-        </div>
-
-        {/* Dropzone */}
-        <div style={{ padding: '16px 20px 0' }}>
-          <div className={`dropzone ${dragging ? 'drag' : ''}`}
-            onClick={() => fileRef.current.click()}
-            onDragOver={e => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={e => { e.preventDefault(); setDragging(false); uploadFiles(e.dataTransfer.files); }}>
-            <div style={{ display: 'inline-flex', width: 48, height: 48, borderRadius: 14, background: 'var(--bg-elev)', border: '1px solid var(--line)', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              {uploading ? <Spinner/> : <I.upload size={22} color="var(--ink-2)"/>}
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 500 }}>{uploading ? 'Enviando…' : 'Arraste arquivos aqui'}</div>
-            <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 4 }}>ou clique para escolher</div>
-            <input ref={fileRef} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.jpeg,.png,.csv" style={{ display: 'none' }} onChange={e => uploadFiles(e.target.files)}/>
-          </div>
-        </div>
-
-        {/* Uploaded documents */}
-        {docs.length > 0 && <>
-          <div className="section-label">Enviados</div>
-          <div style={{ padding: '0 20px' }}>
-            <div className="card">
-              {docs.map(d => (
-                <div key={d.id} className="row">
-                  <div className="row-icon info"><I.doc size={18}/></div>
-                  <div className="row-main">
-                    <div className="row-title">{d.filename}</div>
-                    <div className="row-sub">{(d.size / 1024).toFixed(0)} KB · {d.type}</div>
-                    {d.status === 'processing' && (
-                      <div className="progress" style={{ width: '100%', marginTop: 6 }}>
-                        <div className="progress-bar" style={{ width: '60%' }}/>
-                      </div>
-                    )}
-                  </div>
-                  <span className="pill" style={{ color: statusColor[d.status], borderColor: statusColor[d.status] + '44', background: statusColor[d.status] + '11', fontSize: 10 }}>
-                    {statusLabel[d.status]}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>}
-
-        <div style={{ padding: '20px 20px 28px' }}>
-          <button className="btn btn-primary btn-block" style={{ padding: 14 }} onClick={() => fileRef.current.click()}>
-            <I.plus size={16}/>Novo envio
-          </button>
-        </div>
-      </div>
-      <TabBar active="upload" onNav={onNav}/>
+const Transactions=()=>{
+  const [txs,setTxs]=useState([]);
+  const [filter,setFilter]=useState('todos');
+  const [total,setTotal]=useState(0);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{setLoading(true);const s=filter==='todos'?'':filter;api.get(`/api/transactions?period=2026-11&status=${s}`).then(d=>{setTxs(d.transactions||[]);setTotal(d.total||0);}).catch(console.error).finally(()=>setLoading(false));},[filter]);
+  const bm={ok:'bok',warn:'bwn',risk:'brk',pending:'bin'};
+  const lm={ok:'Conciliado',warn:'Divergencia',risk:'Risco',pending:'Pendente'};
+  return(<div className="page fup">
+    <div className="ph"><div><div className="pt">Lancamentos</div><div className="ps">Novembro 2026 - {total} transacoes</div></div></div>
+    <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+      <div className="ftabs">{[{id:'todos',l:'Todos'},{id:'conciliados',l:'Conciliados'},{id:'divergentes',l:'Divergencias'},{id:'riscos',l:'Riscos'}].map(t=>(<button key={t.id} className={`ftab ${filter===t.id?'on':''}`} onClick={()=>setFilter(t.id)}>{t.l}</button>))}</div>
     </div>
-  );
+    <div className="card" style={{overflowX:'auto'}}>
+      {loading?<div style={{padding:40,textAlign:'center'}}><Spin/></div>:(<table className="tbl">
+        <thead><tr><th>Favorecido</th><th>Descricao</th><th>Banco</th><th>Categoria</th><th>Data</th><th style={{textAlign:'right'}}>Valor</th><th>Status</th></tr></thead>
+        <tbody>{txs.map(t=>(<tr key={t.id}>
+          <td><div style={{fontWeight:500}}>{t.counterparty}</div>{t.cnpj&&<div style={{fontSize:11,color:'var(--ink3)',fontFamily:'DM Mono'}}>{t.cnpj}</div>}</td>
+          <td style={{color:'var(--ink3)',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.description}</td>
+          <td style={{fontSize:12,color:'var(--ink3)'}}>{t.account_id?.toUpperCase()}</td>
+          <td style={{fontSize:12,color:'var(--ink3)'}}>{t.category}</td>
+          <td className="mono" style={{color:'var(--ink3)',fontSize:12}}>{fdt(t.date)}</td>
+          <td className="mono" style={{textAlign:'right',fontWeight:600,color:t.amount>0?'var(--ok)':undefined}}>{t.amount>0?'+':''}{BRL(t.amount)}</td>
+          <td><span className={`badge ${bm[t.status]||'bin'}`}><span className={`dot ${t.status==='ok'?'dok':t.status==='warn'?'dwn':t.status==='risk'?'drk':'din'}`}/> {lm[t.status]||t.status}</span>{t.divergence&&<div style={{fontSize:11,color:'var(--wn)',marginTop:2}}>{t.divergence.substring(0,55)}...</div>}</td>
+        </tr>))}</tbody>
+      </table>)}
+    </div>
+  </div>);
 };
 
-// ══════════════════════════════════════════════════
-// CHAT SCREEN
-// ══════════════════════════════════════════════════
-const Chat = ({ onNav }) => {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const scrollRef = useRef();
-
-  useEffect(() => {
-    api.get('/api/chat').then(d => setMessages(d.messages || [])).catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
-
-  const send = async (text) => {
-    const msg = text || input.trim();
-    if (!msg || sending) return;
-    setInput('');
-    setSending(true);
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', content: msg }]);
-    try {
-      const data = await api.post('/api/chat', { message: msg });
-      setMessages(prev => [...prev, data.message]);
-    } catch (e) {
-      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', content: 'Erro ao conectar com o agente: ' + e.message }]);
-    } finally { setSending(false); }
-  };
-
-  const suggestions = ['Quais são os riscos?', 'Mostrar divergências', 'Resumo do período'];
-
-  return (
-    <div className="app">
-      <TopBar
-        title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <span className="agent-avatar" style={{ width: 26, height: 26, fontSize: 11 }}>AI</span>
-          <span>Agente</span>
-          <span className="pill pill-ok" style={{ fontSize: 10, padding: '2px 6px' }}><span className="dot dot-ok"/>online</span>
-        </span>}
-        left={<button className="icon-btn" onClick={() => onNav('dashboard')}><I.chevL size={20}/></button>}
-        right={<button className="icon-btn"><I.more size={20}/></button>}/>
-
-      <div ref={scrollRef} className="scroll" style={{ padding: '12px 16px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {messages.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--ink-3)', fontSize: 13 }}>
-            <div style={{ fontSize: 24, marginBottom: 8 }}>🤖</div>
-            Olá! Sou o Agente Contábil.<br/>Pergunte sobre transações, riscos ou relatórios.
-          </div>
-        )}
-
-        {messages.map((m, i) => (
-          <div key={m.id || i} className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start', gap: 6 }}>
-            <div className={`msg msg-${m.role === 'user' ? 'user' : 'assistant'}`}>{m.content}</div>
-            {m.suggestions?.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxWidth: '85%' }}>
-                {m.suggestions.map(s => (
-                  <button key={s} className="btn btn-sm" onClick={() => send(s)}>{s}</button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-
-        {sending && (
-          <div style={{ alignSelf: 'flex-start', padding: '10px 14px', background: 'var(--bg-sunken)', borderRadius: 16, display: 'inline-flex', gap: 3 }}>
-            <span className="pulse-dot"/><span className="pulse-dot"/><span className="pulse-dot"/>
-          </div>
-        )}
-      </div>
-
-      {/* Suggestions */}
-      {messages.length === 0 && (
-        <div style={{ padding: '0 16px 10px', display: 'flex', gap: 6, overflowX: 'auto' }}>
-          {suggestions.map(s => <button key={s} className="btn btn-sm" style={{ whiteSpace: 'nowrap', flexShrink: 0 }} onClick={() => send(s)}>{s}</button>)}
+const Alerts=()=>{
+  const [alerts,setAlerts]=useState([]);
+  const [exp,setExp]=useState(0);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{api.get('/api/alerts?resolved=false').then(d=>{setAlerts(d.alerts||[]);setExp(d.risk_exposure||0);}).catch(console.error).finally(()=>setLoading(false));}, []);
+  const resolve=async id=>{await api.patch(`/api/alerts/${id}/resolve`,{resolution_note:'Resolvido'});setAlerts(p=>p.filter(a=>a.id!==id));};
+  const ignore=async id=>{await api.patch(`/api/alerts/${id}/ignore`);setAlerts(p=>p.filter(a=>a.id!==id));};
+  return(<div className="page fup">
+    <div className="ph"><div><div className="pt">Alertas de risco</div><div className="ps">{alerts.length} alertas ativos</div></div></div>
+    <div style={{background:'var(--rkb)',border:'1px solid var(--rkbd)',borderRadius:'var(--rl)',padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',gap:16}}>
+      <div style={{width:44,height:44,borderRadius:12,background:'#fff',border:'1px solid var(--rkbd)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--rk)',flexShrink:0}}><I.sh size={22}/></div>
+      <div><div style={{fontWeight:600,fontSize:15,color:'var(--rk)'}}>Exposicao potencial: {BRL(exp)}</div><div style={{fontSize:13,color:'var(--ink3)',marginTop:2}}>em {alerts.length} lancamentos sem lastro documental</div></div>
+    </div>
+    {loading?<div style={{textAlign:'center',padding:40}}><Spin/></div>:alerts.length===0?(<div style={{textAlign:'center',padding:60,color:'var(--ink3)'}}><div style={{fontSize:32,marginBottom:10}}>✅</div><div style={{fontSize:16,fontWeight:600,color:'var(--ink)'}}>Nenhum alerta ativo</div><div style={{fontSize:14,marginTop:4}}>Todos os lancamentos estao em conformidade</div></div>):(<div style={{display:'flex',flexDirection:'column',gap:12}}>{alerts.map(a=>(<div key={a.id} className="card fup" style={{borderLeft:`3px solid var(--${a.level==='risk'?'rk':'wn'})` }}>
+      <div style={{padding:'18px 20px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          <span className={`badge ${a.level==='risk'?'brk':'bwn'}`}><span className={`dot ${a.level==='risk'?'drk':'dwn'}`}/> {a.level==='risk'?'Alto risco':'Atencao'}</span>
+          <span style={{fontSize:11,color:'var(--ink4)',marginLeft:'auto'}}>{new Date(a.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
         </div>
-      )}
-
-      {/* Input bar */}
-      <div style={{ padding: '8px 16px 24px', borderTop: '1px solid var(--line)', display: 'flex', gap: 8, background: 'var(--bg)' }}>
-        <input
-          style={{ flex: 1, padding: '10px 14px', borderRadius: 100, border: '1px solid var(--line)', background: 'var(--bg-sunken)', fontSize: 14, outline: 'none', fontFamily: 'inherit' }}
-          placeholder="Pergunte ao agente…"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-          disabled={sending}
-        />
-        <button className="btn btn-primary" style={{ padding: '10px 14px', borderRadius: 100 }} onClick={() => send()} disabled={!input.trim() || sending}>
-          <I.send size={16}/>
-        </button>
+        <div style={{fontSize:15,fontWeight:600,marginBottom:4}}>{a.title}</div>
+        <div style={{fontSize:13,color:'var(--ink2)',marginBottom:12}}>{a.subtitle}</div>
+        <div style={{fontSize:13,color:'var(--ink2)',padding:'10px 14px',background:'var(--sf2)',borderRadius:8,lineHeight:1.6}}>{a.detail}</div>
+        <div style={{display:'flex',gap:8,marginTop:14}}>
+          <button className="btn sm gh" onClick={()=>ignore(a.id)}>Ignorar</button>
+          <button className="btn sm pr" style={{marginLeft:'auto'}} onClick={()=>resolve(a.id)}><I.ok size={13}/>Resolver</button>
+        </div>
       </div>
-    </div>
-  );
+    </div>))}
+    </div>)}
+  </div>);
 };
 
-// ══════════════════════════════════════════════════
-// REPORT SCREEN
-// ══════════════════════════════════════════════════
-const Report = ({ onNav }) => {
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [reconciling, setReconciling] = useState(false);
-
-  useEffect(() => {
-    api.get('/api/reports/summary?period=2026-11')
-      .then(setReport).catch(console.error).finally(() => setLoading(false));
-  }, []);
-
-  const runReconcile = async () => {
-    setReconciling(true);
-    try {
-      const res = await api.post('/api/reconcile', { period: '2026-11' });
-      alert(`✅ ${res.message}\n\n${res.reconciled} conciliados · ${res.divergences} divergências · ${res.risks} riscos`);
-      const refreshed = await api.get('/api/reports/summary?period=2026-11');
-      setReport(refreshed);
-    } catch (e) { alert('Erro: ' + e.message); }
-    finally { setReconciling(false); }
+const Upload=()=>{
+  const [docs,setDocs]=useState([]);
+  const [uploading,setUploading]=useState(false);
+  const [drag,setDrag]=useState(false);
+  const ref=useRef();
+  useEffect(()=>{api.get('/api/upload').then(d=>setDocs(d.documents||[])).catch(console.error);},[]);
+  const doUpload=async files=>{
+    setUploading(true);const form=new FormData();Array.from(files).forEach(f=>form.append('files',f));
+    try{const res=await fetch(API+'/api/upload',{method:'POST',headers:{'Authorization':`Bearer ${api.token}`},body:form});const data=await res.json();if(!res.ok)throw new Error(data.error);const r=await api.get('/api/upload');setDocs(r.documents||[]);}
+    catch(e){alert('Erro: '+e.message);}finally{setUploading(false);}
   };
-
-  return (
-    <div className="app">
-      <TopBar title="Fechamento" sub="Novembro 2026"
-        left={<button className="icon-btn" onClick={() => onNav('dashboard')}><I.chevL size={20}/></button>}
-        right={<button className="icon-btn"><I.download size={20}/></button>}/>
-
-      <div className="scroll">
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner/></div>
-        ) : report ? <>
-          {/* Hero card */}
-          <div style={{ padding: '16px 20px 0' }}>
-            <div className="card" style={{ background: 'var(--ink)', color: '#fff', border: 'none' }}>
-              <div style={{ padding: '18px 18px 14px' }}>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>
-                  Resultado
-                </div>
-                <div className="num" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', marginTop: 6 }}>
-                  {BRL(Math.abs(report.resultado))}
-                  <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 14, fontWeight: 400 }}>
-                    {report.resultado >= 0 ? ' lucro' : ' prejuízo'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: 14, marginTop: 16 }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Entradas</div>
-                    <div className="num" style={{ fontSize: 15, fontWeight: 500, marginTop: 2, color: 'var(--ok-500)' }}>+{BRL(report.totalReceitas)}</div>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Saídas</div>
-                    <div className="num" style={{ fontSize: 15, fontWeight: 500, marginTop: 2 }}>−{BRL(report.totalDespesas)}</div>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Margem</div>
-                    <div className="num" style={{ fontSize: 15, fontWeight: 500, marginTop: 2, color: report.lucroMargin >= 0 ? 'var(--ok-500)' : 'var(--risk-500)' }}>
-                      {report.lucroMargin}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Status */}
-          <div className="section-label">Status da conciliação</div>
-          <div style={{ padding: '0 20px' }}>
-            <div className="card">
-              {[
-                { label: 'Conciliados', val: report.transacoes?.ok, color: 'var(--ok-500)' },
-                { label: 'Divergentes', val: report.transacoes?.warn, color: 'var(--warn-500)' },
-                { label: 'Riscos', val: report.transacoes?.risk, color: 'var(--risk-500)' },
-              ].map(r => {
-                const total = report.transacoes?.total || 1;
-                return (
-                  <div key={r.label} className="row">
-                    <div className="row-main">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <span className="row-title">{r.label}</span>
-                        <span style={{ marginLeft: 'auto', fontWeight: 600, fontSize: 13 }}>{r.val || 0}</span>
-                      </div>
-                      <div className="progress">
-                        <div className="progress-bar" style={{ width: `${((r.val || 0) / total) * 100}%`, background: r.color }}/>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Categories */}
-          {report.byCategory?.length > 0 && <>
-            <div className="section-label">Por categoria</div>
-            <div style={{ padding: '0 20px' }}>
-              <div className="card">
-                {report.byCategory.slice(0, 6).map(c => (
-                  <div key={c.name} className="row">
-                    <div className="row-main">
-                      <div className="row-title">{c.name}</div>
-                      <div className="row-sub">{c.count} lançamentos</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      {c.despesas > 0 && <div className="row-amount num">−{BRL(c.despesas)}</div>}
-                      {c.receitas > 0 && <div className="num" style={{ fontSize: 14, fontWeight: 500, color: 'var(--ok-700)' }}>+{BRL(c.receitas)}</div>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>}
-
-          <div style={{ padding: '16px 20px 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button className="btn btn-primary btn-block" style={{ padding: 14 }} onClick={runReconcile} disabled={reconciling}>
-              {reconciling ? <><Spinner/>Reconciliando…</> : <><I.refresh size={16}/>Rodar conciliação automática</>}
-            </button>
-          </div>
-        </> : (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-3)' }}>Sem dados para o período</div>
-        )}
+  const sc={done:'var(--ok)',processing:'var(--in)',error:'var(--rk)',pending:'var(--ink3)'};
+  const sl={done:'Lido',processing:'Processando',error:'Erro',pending:'Na fila'};
+  return(<div className="page fup">
+    <div className="ph"><div><div className="pt">Documentos</div><div className="ps">Envie extratos, NF-e, comprovantes e contratos</div></div></div>
+    <div className="twocol">
+      <div>
+        <div className={`dz ${drag?'drag':''}`} onClick={()=>ref.current.click()} onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);doUpload(e.dataTransfer.files);}}>
+          <div style={{width:56,height:56,borderRadius:14,background:'var(--sf2)',border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}>{uploading?<Spin/>:<I.up size={24} style={{color:'var(--ink3)'}}/>}</div>
+          <div style={{fontSize:16,fontWeight:600}}>{uploading?'Enviando...':'Arraste arquivos aqui'}</div>
+          <div style={{fontSize:13,color:'var(--ink3)',marginTop:6}}>PDF, OFX, XML NF-e, CSV, imagens</div>
+          <button className="btn pr" style={{marginTop:20}} onClick={e=>{e.stopPropagation();ref.current.click();}}><I.pl size={14}/>Selecionar arquivos</button>
+          <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.jpg,.jpeg,.png,.csv" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
+        </div>
+        <div className="card" style={{marginTop:20}}>
+          <div className="ch"><div className="ct">Fontes conectadas</div></div>
+          {[{l:'Extratos bancarios',s:'Itau, BB, Nubank - OFX',c:'var(--in)'},{l:'Notas fiscais',s:'NF-e XML - SEFAZ',c:'var(--ok)'}].map(src=>(<div key={src.l} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:'1px solid var(--bd2)'}}><div style={{width:34,height:34,borderRadius:9,background:src.c+'15',color:src.c,display:'flex',alignItems:'center',justifyContent:'center'}}><I.up size={16}/></div><div style={{flex:1}}><div style={{fontWeight:500,fontSize:13}}>{src.l}</div><div style={{fontSize:11,color:'var(--ink3)'}}>{src.s}</div></div><span className="badge bok"><span className="dot dok"/>Ativo</span></div>))}
+        </div>
       </div>
-      <TabBar active="report" onNav={onNav}/>
+      <div className="card">
+        <div className="ch"><div className="ct">Arquivos enviados ({docs.length})</div></div>
+        <div style={{overflowY:'auto',maxHeight:500}}>{docs.length===0?<div style={{padding:40,textAlign:'center',color:'var(--ink3)',fontSize:14}}>Nenhum arquivo enviado ainda</div>:docs.map(d=>(<div key={d.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:'1px solid var(--bd2)'}}><div style={{flex:1,minWidth:0}}><div style={{fontWeight:500,fontSize:13,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.filename}</div><div style={{fontSize:11,color:'var(--ink3)',marginTop:2}}>{(d.size/1024).toFixed(0)} KB - {d.type}</div>{d.status==='processing'&&<div className="prog" style={{marginTop:6}}><div className="progb" style={{width:'60%',background:'var(--in)'}}></div></div>}</div><span className="badge" style={{color:sc[d.status],borderColor:sc[d.status]+'44',background:sc[d.status]+'11',fontSize:11}}>{sl[d.status]}</span></div>))}</div>
+      </div>
     </div>
-  );
+  </div>);
 };
 
-// ══════════════════════════════════════════════════
-// APP ROUTER
-// ══════════════════════════════════════════════════
-const App = () => {
-  const savedToken = localStorage.getItem('contabil_token');
-  const [user, setUser] = useState(null);
-  const [screen, setScreen] = useState('dashboard');
-  const [checkingAuth, setCheckingAuth] = useState(!!savedToken);
-
-  useEffect(() => {
-    if (!savedToken) return;
-    api.get('/auth/me')
-      .then(u => setUser(u))
-      .catch(() => { localStorage.removeItem('contabil_token'); api.token = null; })
-      .finally(() => setCheckingAuth(false));
-  }, []);
-
-  const handleLogin = (userData) => setUser(userData);
-  const handleLogout = () => {
-    localStorage.removeItem('contabil_token');
-    api.token = null;
-    setUser(null);
-    setScreen('dashboard');
+const Chat=()=>{
+  const [msgs,setMsgs]=useState([]);
+  const [input,setInput]=useState('');
+  const [sending,setSending]=useState(false);
+  const ref=useRef();
+  useEffect(()=>{api.get('/api/chat').then(d=>setMsgs(d.messages||[])).catch(console.error);},[]);
+  useEffect(()=>{if(ref.current) ref.current.scrollTop=ref.current.scrollHeight;},[msgs]);
+  const send=async text=>{
+    const m=text||input.trim();if(!m||sending)return;
+    setInput('');setSending(true);
+    setMsgs(p=>[...p,{id:Date.now(),role:'user',content:m}]);
+    try{const d=await api.post('/api/chat',{message:m});setMsgs(p=>[...p,d.message]);}
+    catch(e){setMsgs(p=>[...p,{id:Date.now()+1,role:'assistant',content:'Erro: '+e.message}]);}
+    finally{setSending(false);}
   };
-
-  if (checkingAuth) return (
-    <div className="phone-shell">
-      <div className="app" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <Spinner/>
+  const suggs=['Resumo do periodo','Quais sao os riscos?','Mostrar divergencias','Saldo das contas'];
+  return(<div className="chat-layout">
+    <div style={{padding:'18px 28px 0',borderBottom:'1px solid var(--bd)',background:'var(--sf)',flexShrink:0}}>
+      <div style={{display:'flex',alignItems:'center',gap:12,paddingBottom:14}}>
+        <div className="agav" style={{width:40,height:40,fontSize:12}}>AI</div>
+        <div><div style={{fontWeight:700,fontSize:15,letterSpacing:'-.03em'}}>Agente Contabil</div><div style={{fontSize:12,color:'var(--ok)',fontWeight:500,display:'flex',alignItems:'center',gap:5,marginTop:2}}><span className="dot dok" style={{width:5,height:5}}/>online</div></div>
+        <button className="btn sm gh" style={{marginLeft:'auto'}} onClick={async()=>{await api.del('/api/chat');setMsgs([]);}}><I.x size={13}/>Limpar</button>
       </div>
     </div>
-  );
-
-  if (!user) return <div className="phone-shell"><Login onLogin={handleLogin}/></div>;
-
-  const nav = (s) => setScreen(s);
-
-  const screens = {
-    dashboard:    <Dashboard onNav={nav} onTx={() => nav('transactions')} onAlert={() => nav('alerts')}/>,
-    transactions: <Transactions onNav={nav} onBack={() => nav('dashboard')}/>,
-    alerts:       <Alerts onNav={nav} onBack={() => nav('dashboard')}/>,
-    upload:       <Upload onNav={nav}/>,
-    chat:         <Chat onNav={nav}/>,
-    report:       <Report onNav={nav}/>,
-  };
-
-  return (
-    <div className="phone-shell">
-      {screens[screen] || screens.dashboard}
+    <div ref={ref} className="chat-msgs">
+      {msgs.length===0&&(<div style={{textAlign:'center',padding:'50px 20px',color:'var(--ink3)'}}><div style={{fontSize:36,marginBottom:12}}>🤖</div><div style={{fontSize:16,fontWeight:600,color:'var(--ink)',marginBottom:6}}>Ola! Sou o Agente Contabil</div><div style={{fontSize:14,lineHeight:1.65}}>Posso ajudar com analise de transacoes, alertas de risco, saldos e relatorios.</div><div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginTop:24}}>{suggs.map(s=><button key={s} className="btn sm" onClick={()=>send(s)}>{s}</button>)}</div></div>)}
+      {msgs.map((m,i)=>(<div key={m.id||i} className="fup" style={{display:'flex',flexDirection:'column',alignItems:m.role==='user'?'flex-end':'flex-start',gap:6}}>
+        <div className={`mrow ${m.role==='user'?'me':''}`}>
+          {m.role==='assistant'&&<div className="agav" style={{width:28,height:28,fontSize:10,flexShrink:0}}>AI</div>}
+          <div className={`bubble ${m.role==='user'?'me':'ai'}`}>{m.content}</div>
+        </div>
+        {m.suggestions?.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:6,paddingLeft:38}}>{m.suggestions.map(s=><button key={s} className="btn sm" onClick={()=>send(s)}>{s}</button>)}</div>)}
+      </div>))}
+      {sending&&(<div className="mrow"><div className="agav" style={{width:28,height:28,fontSize:10}}>AI</div><div className="bubble ai" style={{display:'flex',gap:4,alignItems:'center',padding:'12px 14px'}}><span className="pulse"/><span className="pulse"/><span className="pulse"/></div></div>)}
     </div>
-  );
+    <div className="cbar">
+      <input className="inp" style={{flex:1}} placeholder="Pergunte sobre transacoes, riscos, relatorios..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&send()} disabled={sending}/>
+      <button className="btn pr" onClick={()=>send()} disabled={!input.trim()||sending}><I.send size={14}/>Enviar</button>
+    </div>
+  </div>);
+};
+
+const Report=()=>{
+  const [rep,setRep]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [running,setRunning]=useState(false);
+  useEffect(()=>{api.get('/api/reports/summary?period=2026-11').then(setRep).catch(console.error).finally(()=>setLoading(false));},[]);
+  const run=async()=>{
+    setRunning(true);
+    try{const r=await api.post('/api/reconcile',{period:'2026-11'});alert(`OK: ${r.message}`);setRep(await api.get('/api/reports/summary?period=2026-11'));}
+    catch(e){alert('Erro: '+e.message);}finally{setRunning(false);}
+  };
+  return(<div className="page fup">
+    <div className="ph">
+      <div><div className="pt">Relatorio de fechamento</div><div className="ps">Novembro 2026</div></div>
+      <div style={{display:'flex',gap:8}}>
+        <button className="btn" disabled><I.dl size={14}/>Exportar PDF</button>
+        <button className="btn pr" onClick={run} disabled={running}>{running?<><Spin/>Processando...</>:<><I.ref size={14}/>Rodar conciliacao</>}</button>
+      </div>
+    </div>
+    {loading?<div style={{textAlign:'center',padding:60}}><Spin/></div>:rep&&(<>
+      <div style={{background:'var(--ink)',borderRadius:'var(--rl)',padding:'28px 32px',marginBottom:24,color:'#fff'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:32}}>
+          {[{l:'Receitas',v:`+${BRL(rep.totalReceitas)}`,c:'#6fcf97'},{l:'Despesas',v:`-${BRL(rep.totalDespesas)}`,c:'#fff'},{l:'Resultado',v:`${rep.resultado>=0?'+':''}${BRL(rep.resultado)}`,c:rep.resultado>=0?'#6fcf97':'#ff6b6b',sub:`Margem ${rep.lucroMargin}%`}].map(s=>(<div key={s.l}><div style={{fontSize:11,textTransform:'uppercase',letterSpacing:'.08em',color:'rgba(255,255,255,.35)',fontWeight:600,marginBottom:8}}>{s.l}</div><div style={{fontSize:26,fontWeight:700,letterSpacing:'-.04em',color:s.c,fontVariantNumeric:'tabular-nums'}}>{s.v}</div>{s.sub&&<div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:4}}>{s.sub}</div>}</div>))}
+        </div>
+      </div>
+      <div className="twocol">
+        <div className="card">
+          <div className="ch"><div className="ct">Status da conciliacao</div></div>
+          <div className="cb" style={{display:'flex',flexDirection:'column',gap:16}}>
+            {[{l:'Conciliados',v:rep.transacoes?.ok,c:'var(--ok)',t:rep.transacoes?.total},{l:'Divergentes',v:rep.transacoes?.warn,c:'var(--wn)',t:rep.transacoes?.total},{l:'Riscos',v:rep.transacoes?.risk,c:'var(--rk)',t:rep.transacoes?.total}].map(r=>(<div key={r.l}><div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:13}}><span style={{fontWeight:500}}>{r.l}</span><span style={{color:'var(--ink3)',fontVariantNumeric:'tabular-nums'}}>{r.v||0} / {r.t||0}</span></div><div className="prog"><div className="progb" style={{width:`${((r.v||0)/(r.t||1))*100}%`,background:r.c}}/></div></div>))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="ch"><div className="ct">Por categoria</div></div>
+          <div style={{overflowY:'auto',maxHeight:260}}>{(rep.byCategory||[]).slice(0,8).map(c=>(<div key={c.name} style={{display:'flex',alignItems:'center',padding:'10px 16px',borderBottom:'1px solid var(--bd2)'}}><div style={{flex:1,fontWeight:500,fontSize:13}}>{c.name}</div><div style={{fontSize:11,color:'var(--ink3)',marginRight:14}}>{c.count} lanc.</div><div style={{fontVariantNumeric:'tabular-nums',fontSize:13,fontWeight:600,color:c.despesas>0?'var(--ink)':'var(--ok)'}}>{c.despesas>0?`-${BRL(c.despesas)}`: `+${BRL(c.receitas)}`}</div></div>))}</div>
+        </div>
+      </div>
+    </>)}
+  </div>);
+};
+
+const App=()=>{
+  const [user,setUser]=useState(null);
+  const [screen,setScreen]=useState('dashboard');
+  const [na,setNa]=useState(0);
+  const [checking,setChecking]=useState(!!localStorage.getItem('ct'));
+  useEffect(()=>{
+    if(!localStorage.getItem('ct')){setChecking(false);return;}
+    api.get('/auth/me').then(setUser).catch(()=>{localStorage.removeItem('ct');api.token=null;}).finally(()=>setChecking(false));
+  },[]);
+  useEffect(()=>{if(!user)return;api.get('/api/alerts?resolved=false').then(d=>setNa(d.alerts?.length||0)).catch(()=>{});},[user]);
+  const logout=()=>{localStorage.removeItem('ct');api.token=null;setUser(null);};
+  if(checking) return <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><Spin/></div>;
+  if(!user) return <Login onLogin={setUser}/>;
+  const pages={dashboard:<Dashboard go={setScreen}/>,transactions:<Transactions/>,alerts:<Alerts/>,upload:<Upload/>,chat:<Chat/>,report:<Report/>};
+  return(<div className="layout">
+    <Sidebar cur={screen} go={setScreen} user={user} logout={logout} na={na}/>
+    <div className="main">
+      <MH cur={screen}/>
+      <div className="mscroll">{pages[screen]||pages.dashboard}</div>
+      <MTabs cur={screen} go={setScreen} na={na}/>
+    </div>
+  </div>);
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
