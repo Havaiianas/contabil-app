@@ -594,6 +594,29 @@ const ModalEngajamento = ({clienteId,clienteNome,onClose,onSaved}) => {
 };
 
 // ENGAJAMENTO DETALHE
+const StatusBadge = ({status}) => {
+  const map = {
+    conforme: {cls:'bok', label:'Conforme'},
+    divergente: {cls:'bwn', label:'Divergente'},
+    risco: {cls:'brk', label:'Risco'},
+    sem_documento: {cls:'bgray', label:'Sem documento'},
+  };
+  const s = map[status] || {cls:'bgray', label: status || '—'};
+  return <span className={`badge ${s.cls}`}>{s.label}</span>;
+};
+
+const CheckCell = ({check}) => {
+  if (!check) return <span className="badge bgray">—</span>;
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'flex-start'}}>
+      <StatusBadge status={check.status}/>
+      {check.divergencias && check.divergencias.length > 0 && (
+        <div style={{fontSize:10,color:'var(--wn)',maxWidth:180,lineHeight:1.3}}>{check.divergencias[0]}</div>
+      )}
+    </div>
+  );
+};
+
 const EngajamentoDetalhe = ({engId,go}) => {
   const [eng,setEng]=useState(null);
   const [conc,setConc]=useState(null);
@@ -603,13 +626,14 @@ const EngajamentoDetalhe = ({engId,go}) => {
   const [drag,setDrag]=useState(false);
   const [uploading,setUploading]=useState(false);
   const [tipoDoc,setTipoDoc]=useState('auto');
+  const [selectedForn,setSelectedForn]=useState(null);
   const ref=useRef();
 
   const load = async () => {
-    const d = await api.get(`/api/engajamentos/${engId}`);
+    const d = await api.get('/api/engajamentos/'+engId);
     setEng(d);
     if(d.status==='conciliado') {
-      try{const c=await api.get(`/api/conciliacao/${engId}`);setConc(c);}catch(e){}
+      try{ const c=await api.get('/api/conciliacao/'+engId); setConc(c); }catch(e){}
     }
   };
 
@@ -621,42 +645,103 @@ const EngajamentoDetalhe = ({engId,go}) => {
     Array.from(files).forEach(f=>form.append('files',f));
     if(tipoDoc!=='auto') form.append('tipo',tipoDoc);
     try {
-      await fetch(`${API}/api/upload/${engId}`,{method:'POST',headers:{Authorization:`Bearer ${api.token}`},body:form});
+      await fetch(API+'/api/upload/'+engId,{method:'POST',headers:{Authorization:'Bearer '+api.token},body:form});
       await load();
     } catch(e){alert('Erro: '+e.message);}finally{setUploading(false);}
   };
 
   const runConciliacao = async () => {
     setRunning(true);
-    try{const c=await api.post(`/api/conciliacao/${engId}/run`,{});setConc(c);await load();}
+    try{ const c=await api.post('/api/conciliacao/'+engId+'/run',{}); setConc(c); await load(); }
     catch(e){alert('Erro: '+e.message);}finally{setRunning(false);}
   };
 
   const gerarLaudo = async () => {
     setGenLaudo(true);
-    try{await api.post(`/api/laudo/${engId}/gerar`,{});alert('Laudo gerado com sucesso!');}
+    try{ await api.post('/api/laudo/'+engId+'/gerar',{}); alert('Laudo gerado!'); }
     catch(e){alert('Erro: '+e.message);}finally{setGenLaudo(false);}
   };
 
   if(loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><Spin/></div>;
   if(!eng) return null;
 
-  const r = conc?.resumo;
   const docs = eng.documentos||[];
-  const tipoCount = {extrato:0,nota_fiscal:0,contrato:0,comprovante:0,outro:0};
+  const tipoCount = {extrato:0,nota_fiscal:0,contrato:0,comprovante:0};
   docs.forEach(d=>{tipoCount[d.tipo]=(tipoCount[d.tipo]||0)+1;});
+  const r = conc?.resumo;
+  const fornecedores = conc?.fornecedores || [];
 
-  const statusColor = {conforme:'var(--ok)',divergencia:'var(--wn)',sem_nf:'var(--wn)',sem_contrato:'var(--rk)',sem_documentacao:'var(--rk)'};
-  const statusLabel = {conforme:'Conforme',divergencia:'Divergência',sem_nf:'Sem NF',sem_contrato:'Sem contrato',sem_documentacao:'Sem documentação'};
-  const statusBadge = {conforme:'bok',divergencia:'bwn',sem_nf:'bwn',sem_contrato:'brk',sem_documentacao:'brk'};
+  const statusColor = {conforme:'var(--ok)',divergente:'var(--wn)',risco:'var(--rk)',sem_documento:'var(--ink3)'};
+
+  // Supplier detail modal
+  if(selectedForn) return (
+    <div className="page fup">
+      <div className="ph">
+        <div>
+          <button className="btn sm gh" style={{marginBottom:8}} onClick={()=>setSelectedForn(null)}>{I.back(12)}Voltar ao painel</button>
+          <div className="pt" style={{fontFamily:'Geist Mono',fontSize:16}}>{selectedForn.cnpj||'CPF/CNPJ não identificado'}</div>
+          <div className="ps">{selectedForn.nome}</div>
+        </div>
+        <StatusBadge status={selectedForn.status_geral}/>
+      </div>
+
+      {/* 3 checks */}
+      <div className="g3" style={{marginBottom:20}}>
+        {[
+          {lbl:'Check Financeiro',desc:'Comprovante vs extrato',check:selectedForn.check_financeiro},
+          {lbl:'Check Fiscal',desc:'Nota fiscal emitida pelo fornecedor',check:selectedForn.check_fiscal},
+          {lbl:'Check Contratual',desc:'Contrato ativo e dentro do limite',check:selectedForn.check_contratual},
+        ].map(function(item){
+          const ch = item.check || {};
+          const color = statusColor[ch.status] || 'var(--ink3)';
+          return (
+            <div key={item.lbl} className="card" style={{borderTop:'3px solid '+color}}>
+              <div style={{padding:'14px 16px'}}>
+                <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:'var(--ink3)',marginBottom:6}}>{item.lbl}</div>
+                <div style={{marginBottom:8}}><StatusBadge status={ch.status}/></div>
+                <div style={{fontSize:11,color:'var(--ink3)',marginBottom:6}}>{item.desc}</div>
+                {ch.valor_documento && <div style={{fontSize:12,color:'var(--ink)'}}>Documento: <strong style={{fontFamily:'Geist Mono'}}>R$ {(ch.valor_documento||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong></div>}
+                {ch.divergencias && ch.divergencias.length > 0 && (
+                  <div style={{marginTop:8,padding:'6px 10px',background:'var(--wn-bg)',borderRadius:'var(--r)',fontSize:11,color:'var(--wn)',lineHeight:1.5}}>
+                    {ch.divergencias.map(function(d,i){return <div key={i}>• {d}</div>;})}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Payments */}
+      <div className="card">
+        <div className="ch"><div className="ct">Lançamentos ({(selectedForn.pagamentos||[]).length})</div><div style={{fontFamily:'Geist Mono',fontWeight:700}}>R$ {(selectedForn.total_pago||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead><tr><th>Data</th><th>Descrição</th><th style={{textAlign:'right'}}>Valor</th></tr></thead>
+            <tbody>
+              {(selectedForn.pagamentos||[]).map(function(p,i){
+                return (
+                  <tr key={i}>
+                    <td className="mono" style={{fontSize:11,color:'var(--ink3)'}}>{p.data}</td>
+                    <td style={{fontSize:12}}>{p.descricao}</td>
+                    <td className="mono" style={{textAlign:'right',fontWeight:600}}>R$ {(p.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="page fup">
       <div className="ph">
         <div>
-          <button className="btn sm gh" style={{marginBottom:8}} onClick={()=>go(`cliente:${eng.cliente_id}`)}>{I.back(12)}Voltar</button>
+          <button className="btn sm gh" style={{marginBottom:8}} onClick={()=>go('cliente:'+eng.cliente_id)}>{I.back(12)}Voltar</button>
           <div className="pt">{eng.cliente_nome}</div>
-          <div className="ps">{eng.periodo}{eng.descricao&&` · ${eng.descricao}`}</div>
+          <div className="ps">{eng.periodo}{eng.descricao&&' · '+eng.descricao}</div>
         </div>
         <div style={{display:'flex',gap:8}}>
           {conc&&<button className="btn" onClick={gerarLaudo} disabled={genLaudo}>{genLaudo?<><Spin/>Gerando...</>:<>{I.laudo(13)}Gerar laudo</>}</button>}
@@ -668,7 +753,8 @@ const EngajamentoDetalhe = ({engId,go}) => {
         {/* Upload */}
         <div>
           <div className="card" style={{marginBottom:16}}>
-            <div className="ch"><div className="ct">Upload de documentos</div>
+            <div className="ch">
+              <div className="ct">Upload de documentos</div>
               <select className="inp" style={{width:'auto',padding:'4px 28px 4px 10px',fontSize:11}} value={tipoDoc} onChange={e=>setTipoDoc(e.target.value)}>
                 <option value="auto">Detectar automaticamente</option>
                 <option value="extrato">Extrato bancário</option>
@@ -683,31 +769,24 @@ const EngajamentoDetalhe = ({engId,go}) => {
                 onDragOver={e=>{e.preventDefault();setDrag(true);}}
                 onDragLeave={()=>setDrag(false)}
                 onDrop={e=>{e.preventDefault();setDrag(false);doUpload(e.dataTransfer.files);}}>
-                <div style={{width:44,height:44,borderRadius:12,background:'var(--sf2)',border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
-                  {uploading?<Spin/>:I.upload(22)}
+                <div style={{width:40,height:40,borderRadius:10,background:'var(--sf2)',border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 10px'}}>
+                  {uploading?<Spin/>:I.upload(20)}
                 </div>
-                <div style={{fontWeight:600,fontSize:14}}>{uploading?'Enviando...':'Arraste os arquivos aqui'}</div>
-                <div style={{fontSize:12,color:'var(--ink3)',marginTop:4}}>Extrato bancário (OFX/PDF), Notas fiscais (XML/PDF), Contratos (PDF), Comprovantes</div>
-                <button className="btn pr sm" style={{marginTop:14}} onClick={e=>{e.stopPropagation();ref.current?.click();}}>{I.plus(12)}Selecionar arquivos</button>
-                <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.txt,.csv,.xlsx,.jpg,.png,.jpeg" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
+                <div style={{fontWeight:600,fontSize:13}}>{uploading?'Enviando...':'Arraste os arquivos aqui'}</div>
+                <div style={{fontSize:11,color:'var(--ink3)',marginTop:4}}>Extrato (OFX/PDF), NF (XML/PDF), Contrato (PDF), Comprovante (PDF)</div>
+                <button className="btn pr sm" style={{marginTop:12}} onClick={e=>{e.stopPropagation();ref.current?.click();}}>{I.plus(12)}Selecionar</button>
+                <input ref={ref} type="file" multiple accept=".pdf,.ofx,.xml,.txt,.csv" style={{display:'none'}} onChange={e=>doUpload(e.target.files)}/>
               </div>
             </div>
           </div>
-
-          {/* Documentos enviados */}
           <div className="card">
             <div className="ch"><div className="ct">Documentos ({docs.length})</div></div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0}}>
-              {[
-                {tipo:'extrato',lbl:'Extratos',icon:'🏦'},
-                {tipo:'nota_fiscal',lbl:'Notas fiscais',icon:'🧾'},
-                {tipo:'contrato',lbl:'Contratos',icon:'📋'},
-                {tipo:'comprovante',lbl:'Comprovantes',icon:'✅'},
-              ].map(t=>(
+              {[{tipo:'extrato',lbl:'Extratos',icon:'🏦'},{tipo:'nota_fiscal',lbl:'Notas fiscais',icon:'🧾'},{tipo:'contrato',lbl:'Contratos',icon:'📋'},{tipo:'comprovante',lbl:'Comprovantes',icon:'✅'}].map(t=>(
                 <div key={t.tipo} style={{padding:'12px 16px',borderRight:t.tipo==='extrato'||t.tipo==='contrato'?'1px solid var(--bd2)':'none',borderBottom:t.tipo==='extrato'||t.tipo==='nota_fiscal'?'1px solid var(--bd2)':'none',display:'flex',alignItems:'center',gap:10}}>
-                  <span style={{fontSize:20}}>{t.icon}</span>
+                  <span style={{fontSize:18}}>{t.icon}</span>
                   <div>
-                    <div style={{fontWeight:600,fontSize:18,fontVariantNumeric:'tabular-nums'}}>{tipoCount[t.tipo]||0}</div>
+                    <div style={{fontWeight:700,fontSize:20}}>{tipoCount[t.tipo]||0}</div>
                     <div style={{fontSize:10,color:'var(--ink3)'}}>{t.lbl}</div>
                   </div>
                 </div>
@@ -716,12 +795,12 @@ const EngajamentoDetalhe = ({engId,go}) => {
             {docs.length>0&&(
               <div style={{maxHeight:200,overflowY:'auto',borderTop:'1px solid var(--bd2)'}}>
                 {docs.map(d=>(
-                  <div key={d.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 14px',borderBottom:'1px solid var(--bd2)'}}>
+                  <div key={d.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderBottom:'1px solid var(--bd2)'}}>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:12,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.filename}</div>
-                      <div style={{fontSize:10,color:'var(--ink3)',marginTop:1}}>{d.tipo} · {d.lancamentos_extraidos} lançamentos extraídos</div>
+                      <div style={{fontSize:11,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.filename}</div>
+                      <div style={{fontSize:10,color:'var(--ink3)'}}>{d.tipo} · {d.lancamentos_extraidos} lançamentos</div>
                     </div>
-                    <span className={`badge ${d.status==='processado'?'bok':'bwn'}`}>{d.status}</span>
+                    <span className={`badge ${d.status==='processado'?'bok':'bwn'}`} style={{fontSize:9}}>{d.status}</span>
                   </div>
                 ))}
               </div>
@@ -729,82 +808,91 @@ const EngajamentoDetalhe = ({engId,go}) => {
           </div>
         </div>
 
-        {/* Resultado */}
+        {/* Score */}
         <div>
           {!conc?(
-            <div className="card" style={{height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:40,textAlign:'center',gap:16}}>
-              <div style={{fontSize:32}}>🔍</div>
-              <div style={{fontWeight:600,fontSize:15}}>Pronto para conciliar</div>
-              <div style={{fontSize:13,color:'var(--ink3)',lineHeight:1.6}}>Faça upload dos documentos e clique em<br/><strong>Rodar conciliação</strong> para ver o resultado</div>
+            <div className="card" style={{height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:48,textAlign:'center',gap:14}}>
+              <div style={{fontSize:36}}>🔍</div>
+              <div style={{fontWeight:700,fontSize:15}}>Pronto para conciliar</div>
+              <div style={{fontSize:12,color:'var(--ink3)',lineHeight:1.7}}>Faça upload dos documentos e clique em<br/><strong>Rodar conciliação</strong></div>
               {docs.length>0&&<button className="btn pr" onClick={runConciliacao} disabled={running}>{running?<><Spin/>Analisando...</>:<>{I.run(13)}Rodar agora</>}</button>}
             </div>
           ):(
-            <div style={{display:'flex',flexDirection:'column',gap:16}}>
-              {/* Score card */}
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
               <div className="card" style={{background:r.score>=80?'var(--ok-bg)':r.score>=50?'var(--wn-bg)':'var(--rk-bg)',border:`1px solid ${r.score>=80?'var(--ok-bd)':r.score>=50?'var(--wn-bd)':'var(--rk-bd)'}`}}>
                 <div className="cb">
                   <div style={{display:'flex',alignItems:'center',gap:20}}>
                     <ScoreRing score={r.score} size={80}/>
                     <div>
-                      <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>
+                      <div style={{fontSize:14,fontWeight:700,marginBottom:4}}>
                         {r.score>=80?'✅ Alta conformidade':r.score>=50?'⚠️ Conformidade parcial':'🚨 Baixa conformidade'}
                       </div>
-                      <div style={{fontSize:12,color:'var(--ink3)',lineHeight:1.6}}>
-                        {BRL(r.total_pago)} em {r.total_pagamentos} pagamentos<br/>
-                        <strong style={{color:'var(--ok)'}}>{r.pct_conforme}% conforme</strong> · {r.pct_problema}% com problemas
+                      <div style={{fontSize:12,color:'var(--ink2)',lineHeight:1.7}}>
+                        {r.total_fornecedores} fornecedores · {BRL(r.total_pago)}<br/>
+                        <strong style={{color:'var(--ok)'}}>{r.pct_conforme}% conformes</strong>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Breakdown */}
               <div className="card">
-                <div className="ch"><div className="ct">Resultado por status</div></div>
-                <div>
-                  {[
-                    {s:'conforme',l:'Conforme',v:r.valor_conforme,q:r.qtd_conforme,c:'var(--ok)'},
-                    {s:'divergencia',l:'Divergência de valor',v:r.valor_divergencia,q:r.qtd_divergencia,c:'var(--wn)'},
-                    {s:'sem_nf',l:'Sem nota fiscal',v:r.valor_sem_nf,q:r.qtd_sem_nf,c:'var(--wn)'},
-                    {s:'sem_contrato',l:'Sem contrato',v:r.valor_sem_contrato,q:r.qtd_sem_contrato,c:'var(--rk)'},
-                    {s:'sem_documentacao',l:'Sem documentação',v:r.valor_sem_documentacao,q:r.qtd_sem_doc,c:'var(--rk)'},
-                  ].filter(i=>i.q>0).map(i=>(
-                    <div key={i.s} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 16px',borderBottom:'1px solid var(--bd2)'}}>
-                      <div style={{width:4,height:32,borderRadius:2,background:i.c,flexShrink:0}}/>
-                      <div style={{flex:1}}>
-                        <div style={{fontWeight:500,fontSize:12}}>{i.l}</div>
-                        <div style={{fontSize:11,color:'var(--ink3)'}}>{i.q} lançamento{i.q>1?'s':''}</div>
-                      </div>
-                      <div style={{fontWeight:700,fontSize:13,fontVariantNumeric:'tabular-nums',color:i.c}}>{BRL(i.v)}</div>
+                <div className="ch"><div className="ct">Por status</div></div>
+                {[
+                  {s:'conforme',l:'Conforme',q:r.qtd_conforme,v:r.valor_conforme,c:'var(--ok)'},
+                  {s:'divergente',l:'Divergente',q:r.qtd_divergente,v:r.valor_divergente,c:'var(--wn)'},
+                  {s:'risco',l:'Risco',q:r.qtd_risco,v:r.valor_risco,c:'var(--rk)'},
+                  {s:'sem_documento',l:'Sem documento',q:r.qtd_sem_documento,v:r.valor_sem_documento,c:'var(--ink3)'},
+                ].filter(i=>i.q>0).map(i=>(
+                  <div key={i.s} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 16px',borderBottom:'1px solid var(--bd2)'}}>
+                    <div style={{width:4,height:28,borderRadius:2,background:i.c,flexShrink:0}}/>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:500,fontSize:12}}>{i.l}</div>
+                      <div style={{fontSize:10,color:'var(--ink3)'}}>{i.q} fornecedor{i.q>1?'es':''}</div>
                     </div>
-                  ))}
-                </div>
+                    <div style={{fontWeight:700,fontSize:12,color:i.c,fontFamily:'Geist Mono'}}>{BRL(i.v)}</div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Lançamentos detalhados */}
-      {conc&&conc.resultados?.length>0&&(
+      {/* Supplier panel */}
+      {conc&&fornecedores.length>0&&(
         <div className="card">
-          <div className="ch"><div className="ct">Lançamentos detalhados</div><div style={{fontSize:11,color:'var(--ink3)'}}>{conc.resultados.length} pagamentos</div></div>
+          <div className="ch">
+            <div className="ct">Painel de Fornecedores</div>
+            <div style={{fontSize:11,color:'var(--ink3)'}}>{fornecedores.length} fornecedores identificados</div>
+          </div>
           <div className="tbl-wrap">
             <table className="tbl">
-              <thead><tr><th>Data</th><th>Descrição</th><th style={{textAlign:'right'}}>Valor pago</th><th>NF</th><th>Contrato</th><th>Comp.</th><th>Status</th><th>Divergências</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Fornecedor / CNPJ</th>
+                  <th style={{textAlign:'right'}}>Total pago</th>
+                  <th style={{textAlign:'center'}}>Financeiro</th>
+                  <th style={{textAlign:'center'}}>Fiscal</th>
+                  <th style={{textAlign:'center'}}>Contratual</th>
+                  <th style={{textAlign:'center'}}>Status geral</th>
+                </tr>
+              </thead>
               <tbody>
-                {conc.resultados.map((l,i)=>(
-                  <tr key={i}>
-                    <td className="mono" style={{fontSize:11,color:'var(--ink3)'}}>{l.data}</td>
-                    <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:500}}>{l.descricao}</td>
-                    <td className="mono" style={{textAlign:'right',fontWeight:600}}>{BRL(l.valor_pago)}</td>
-                    <td style={{textAlign:'center'}}>{l.tem_nf?<span style={{color:'var(--ok)'}}>✓</span>:<span style={{color:'var(--rk)'}}>✗</span>}</td>
-                    <td style={{textAlign:'center'}}>{l.tem_contrato?<span style={{color:'var(--ok)'}}>✓</span>:<span style={{color:'var(--rk)'}}>✗</span>}</td>
-                    <td style={{textAlign:'center'}}>{l.tem_comprovante?<span style={{color:'var(--ok)'}}>✓</span>:<span style={{color:'var(--ink4)'}}>—</span>}</td>
-                    <td><span className={`badge ${statusBadge[l.status]||'bgray'}`}>{statusLabel[l.status]||l.status}</span></td>
-                    <td style={{maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:11,color:'var(--wn)'}}>{l.divergencias?.join('; ')||'—'}</td>
-                  </tr>
-                ))}
+                {fornecedores.map(function(f,i){
+                  return (
+                    <tr key={i} onClick={()=>setSelectedForn(f)} style={{cursor:'pointer'}}>
+                      <td>
+                        <div style={{fontWeight:500,fontSize:12,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:220}}>{f.nome}</div>
+                        {f.cnpj&&<div style={{fontSize:10,color:'var(--ink3)',fontFamily:'Geist Mono'}}>{f.cnpj}</div>}
+                      </td>
+                      <td style={{textAlign:'right',fontFamily:'Geist Mono',fontWeight:600,fontSize:12}}>{BRL(f.total_pago)}</td>
+                      <td style={{textAlign:'center'}}><CheckCell check={f.check_financeiro}/></td>
+                      <td style={{textAlign:'center'}}><CheckCell check={f.check_fiscal}/></td>
+                      <td style={{textAlign:'center'}}><CheckCell check={f.check_contratual}/></td>
+                      <td style={{textAlign:'center'}}><StatusBadge status={f.status_geral}/></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -813,7 +901,6 @@ const EngajamentoDetalhe = ({engId,go}) => {
     </div>
   );
 };
-
 // ENGAJAMENTOS LIST
 const Engajamentos = ({go}) => {
   const [engs,setEngs]=useState([]);
